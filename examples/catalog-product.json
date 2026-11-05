@@ -1,0 +1,34 @@
+{
+  "id": "new-product-draft",
+  "slug": "new-product-draft",
+  "status": "draft",
+  "name": "New product draft",
+  "title": "Replace with the approved product title",
+  "subtitle": "Replace with a concise product summary",
+  "description": "Unpublished example. Replace this copy and the placeholder media with the actual product information before changing the status.",
+  "currency": "usd",
+  "maxQuantity": 1,
+  "quantityLabel": "Items",
+  "image": "/images/product-set.webp",
+  "contents": [],
+  "specifications": [],
+  "care": [],
+  "gallery": [
+    {
+      "type": "image",
+      "src": "/images/product-set.webp",
+      "thumbnail": "/images/product-set-640.webp",
+      "width": 1251,
+      "height": 848,
+      "alt": "Placeholder image of the existing EITAWARE dinnerware set; replace before publishing this draft",
+      "label": "Draft image"
+    },
+    {
+      "type": "video",
+      "src": "/videos/table.mp4",
+      "poster": "/images/video-table.webp",
+      "label": "Draft video",
+      "caption": "Placeholder video of the existing product; replace or remove before publishing this draft."
+    }
+  ]
+}

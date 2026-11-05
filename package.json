@@ -1,0 +1,37 @@
+{
+  "name": "eitaware-storefront",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "dev:worker": "wrangler dev --env staging",
+    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist/server && node scripts/prerender.mjs",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "preview": "wrangler dev --env staging",
+    "deploy:staging": "npm run build && wrangler deploy --env staging",
+    "deploy": "npm run build && node scripts/check-production.mjs && wrangler deploy --env production",
+    "db:local": "wrangler d1 migrations apply DB --local --env staging",
+    "db:staging": "wrangler d1 migrations apply DB --remote --env staging",
+    "db:production": "wrangler d1 migrations apply DB --remote --env production",
+    "store:pause": "node scripts/pause-store.mjs",
+    "assets:prepare": "node scripts/prepare-assets.mjs"
+  },
+  "dependencies": {
+    "hono": "^4.10.0",
+    "solid-js": "^1.9.9",
+    "stripe": "^23.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261104.1",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.2.0",
+    "vite-plugin-solid": "^2.11.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.0.0"
+  }
+}

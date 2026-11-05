@@ -1,0 +1,148 @@
+{
+  "featuredProductId": "eitaware-dark-blue-12",
+  "products": [
+    {
+      "id": "eitaware-dark-blue-12",
+      "slug": "everyday-set-dark-blue",
+      "status": "available",
+      "asin": "B0H8X1MSP5",
+      "amazonUrl": "https://www.amazon.com/dp/B0H8X1MSP5",
+      "name": "The Everyday Set",
+      "title": "Dark Blue Dinnerware Set",
+      "subtitle": "12-piece stoneware dinnerware set",
+      "description": "A complete 12-piece stoneware dinnerware set for four, finished in a deep blue reactive glaze. Made for everyday meals and the moments worth sharing.",
+      "color": "Dark Blue",
+      "material": "Stoneware",
+      "pieces": 12,
+      "serviceFor": 4,
+      "priceCents": 7999,
+      "currency": "usd",
+      "maxQuantity": 10,
+      "quantityLabel": "Sets",
+      "image": "/images/product-set.webp",
+      "galleryNote": "A deep blue reactive glaze. A different detail in every piece.",
+      "contents": [
+        {
+          "name": "Dinner plates",
+          "quantity": 4,
+          "size": "10 inches",
+          "caption": "For the main event."
+        },
+        {
+          "name": "Salad plates",
+          "quantity": 4,
+          "size": "8 inches",
+          "caption": "For everything alongside."
+        },
+        {
+          "name": "Cereal bowls",
+          "quantity": 4,
+          "size": "5.5 inches",
+          "caption": "For a slower start."
+        }
+      ],
+      "specifications": [
+        {
+          "label": "Material",
+          "value": "Stoneware"
+        },
+        {
+          "label": "Finish",
+          "value": "Deep blue reactive glaze"
+        },
+        {
+          "label": "Pieces",
+          "value": "12 pieces \u00b7 Service for 4"
+        }
+      ],
+      "care": [
+        "Safe for the dishwasher and microwave.",
+        "Use care when moving between hot and cold temperatures. Variations in the glaze are part of the finish."
+      ],
+      "gallery": [
+        {
+          "type": "image",
+          "src": "/images/product-set.webp",
+          "thumbnail": "/images/product-set-640.webp",
+          "width": 1251,
+          "height": 848,
+          "alt": "Full EITAWARE 12-piece dark blue stoneware dinnerware set",
+          "label": "The full set"
+        },
+        {
+          "type": "image",
+          "src": "/images/table-setting.webp",
+          "thumbnail": "/images/table-setting-640.webp",
+          "width": 1254,
+          "height": 1254,
+          "alt": "EITAWARE dinnerware arranged at a table for four",
+          "label": "Set for four"
+        },
+        {
+          "type": "image",
+          "src": "/images/dining.webp",
+          "thumbnail": "/images/dining-640.webp",
+          "width": 1024,
+          "height": 694,
+          "alt": "Salmon, salad, and fruit served on dark blue EITAWARE dinnerware",
+          "label": "Everyday dining"
+        },
+        {
+          "type": "image",
+          "src": "/images/detail.webp",
+          "thumbnail": "/images/detail-640.webp",
+          "width": 1251,
+          "height": 848,
+          "alt": "Close detail of the plates and bowls with rich blue glaze",
+          "label": "A closer look"
+        },
+        {
+          "type": "image",
+          "src": "/images/sizes.webp",
+          "thumbnail": "/images/sizes-640.webp",
+          "width": 1024,
+          "height": 1024,
+          "alt": "10-inch dinner plate, 8-inch salad plate, and 5.5-inch bowl",
+          "label": "Dimensions"
+        },
+        {
+          "type": "image",
+          "src": "/images/includes.webp",
+          "thumbnail": "/images/includes-640.webp",
+          "width": 1024,
+          "height": 1024,
+          "alt": "Four dinner plates, four salad plates, and four bowls",
+          "label": "What is included"
+        },
+        {
+          "type": "video",
+          "src": "/videos/table.mp4",
+          "poster": "/images/video-table.webp",
+          "label": "A table worth gathering around",
+          "caption": "A closer look at the complete set."
+        },
+        {
+          "type": "video",
+          "src": "/videos/meal.mp4",
+          "poster": "/images/video-meal.webp",
+          "label": "The details make the everyday",
+          "caption": "See the color and finish in motion."
+        }
+      ],
+      "careHighlights": [
+        {
+          "kind": "dishwasher",
+          "label": "Dishwasher safe"
+        },
+        {
+          "kind": "microwave",
+          "label": "Microwave safe"
+        },
+        {
+          "kind": "stack",
+          "label": "Easy to stack"
+        }
+      ]
+    }
+  ]
+}
