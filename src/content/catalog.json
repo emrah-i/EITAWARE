@@ -6,21 +6,20 @@
       "slug": "everyday-set-dark-blue",
       "status": "available",
       "asin": "B0H8X1MSP5",
-      "amazonUrl": "https://www.amazon.com/dp/B0H8X1MSP5",
       "name": "The Everyday Set",
       "title": "Dark Blue Dinnerware Set",
       "subtitle": "12-piece stoneware dinnerware set",
-      "description": "A complete 12-piece stoneware dinnerware set for four, finished in a deep blue reactive glaze. Made for everyday meals and the moments worth sharing.",
+      "description": "A complete 12-piece stoneware dinnerware set for four, finished in a dark blue reactive glaze. Made for everyday meals and the moments worth sharing.",
       "color": "Dark Blue",
       "material": "Stoneware",
       "pieces": 12,
       "serviceFor": 4,
-      "priceCents": 7999,
+      "priceCents": 9999,
       "currency": "usd",
       "maxQuantity": 10,
       "quantityLabel": "Sets",
       "image": "/images/product-set.webp",
-      "galleryNote": "A deep blue reactive glaze. A different detail in every piece.",
+      "galleryNote": "A dark blue reactive glaze. A different detail in every piece.",
       "contents": [
         {
           "name": "Dinner plates",
@@ -48,11 +47,11 @@
         },
         {
           "label": "Finish",
-          "value": "Deep blue reactive glaze"
+          "value": "dark blue reactive glaze"
         },
         {
           "label": "Pieces",
-          "value": "12 pieces \u00b7 Service for 4"
+          "value": "12 pieces, Service for 4"
         }
       ],
       "care": [
@@ -66,8 +65,9 @@
           "thumbnail": "/images/product-set-640.webp",
           "width": 1251,
           "height": 848,
-          "alt": "Full EITAWARE 12-piece dark blue stoneware dinnerware set",
-          "label": "The full set"
+          "alt": "Full EITAWARE 12-piece Dark Blue stoneware dinnerware set",
+          "label": "The full set",
+          "thumbnailAlt": "Dark Blue dinnerware set"
         },
         {
           "type": "image",
@@ -76,7 +76,8 @@
           "width": 1254,
           "height": 1254,
           "alt": "EITAWARE dinnerware arranged at a table for four",
-          "label": "Set for four"
+          "label": "Set for four",
+          "thumbnailAlt": "Table set for four with Dark Blue dinnerware"
         },
         {
           "type": "image",
@@ -84,8 +85,9 @@
           "thumbnail": "/images/dining-640.webp",
           "width": 1024,
           "height": 694,
-          "alt": "Salmon, salad, and fruit served on dark blue EITAWARE dinnerware",
-          "label": "Everyday dining"
+          "alt": "Salmon, salad, and fruit served on Dark Blue EITAWARE dinnerware",
+          "label": "Everyday dining",
+          "thumbnailAlt": "Salmon, salad, and fruit on Dark Blue dinnerware"
         },
         {
           "type": "image",
@@ -93,8 +95,9 @@
           "thumbnail": "/images/detail-640.webp",
           "width": 1251,
           "height": 848,
-          "alt": "Close detail of the plates and bowls with rich blue glaze",
-          "label": "A closer look"
+          "alt": "Close detail of the plates and bowls with dark blue reactive glaze",
+          "label": "A closer look",
+          "thumbnailAlt": "Lamb, dessert, and a bowl on Dark Blue dinnerware"
         },
         {
           "type": "image",
@@ -103,7 +106,8 @@
           "width": 1024,
           "height": 1024,
           "alt": "10-inch dinner plate, 8-inch salad plate, and 5.5-inch bowl",
-          "label": "Dimensions"
+          "label": "Dimensions",
+          "thumbnailAlt": "Dinner plate, salad plate, and bowl dimensions"
         },
         {
           "type": "image",
@@ -112,21 +116,24 @@
           "width": 1024,
           "height": 1024,
           "alt": "Four dinner plates, four salad plates, and four bowls",
-          "label": "What is included"
+          "label": "What is included",
+          "thumbnailAlt": "Four dinner plates, four salad plates, and four bowls"
         },
         {
           "type": "video",
           "src": "/videos/table.mp4",
           "poster": "/images/video-table.webp",
-          "label": "A table worth gathering around",
-          "caption": "A closer look at the complete set."
+          "label": "placing a Dark Blue dinner plate on the table",
+          "caption": "A closer look at the complete set.",
+          "thumbnailAlt": "Video: placing a Dark Blue dinner plate on the table"
         },
         {
           "type": "video",
           "src": "/videos/meal.mp4",
           "poster": "/images/video-meal.webp",
-          "label": "The details make the everyday",
-          "caption": "See the color and finish in motion."
+          "label": "salmon, salad, and soup on Dark Blue dinnerware",
+          "caption": "See the color and finish in motion.",
+          "thumbnailAlt": "Video: salmon, salad, and soup on Dark Blue dinnerware"
         }
       ],
       "careHighlights": [
@@ -141,6 +148,18 @@
         {
           "kind": "stack",
           "label": "Easy to stack"
+        },
+        {
+          "kind": "lead-free",
+          "label": "Lead-free"
+        },
+        {
+          "kind": "tested",
+          "label": "Third-party tested"
+        },
+        {
+          "kind": "refrigerator",
+          "label": "Refrigerator safe"
         }
       ]
     }

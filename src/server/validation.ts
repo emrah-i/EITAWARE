@@ -62,8 +62,8 @@ export function validateCheckout(value: unknown): ValidationResult<CheckoutReque
     }
     address.city = textField(source.city, 'address.city', fields, 1, 100);
     address.state = typeof source.state === 'string' ? source.state.trim().toUpperCase() : '';
-    if (!states.has(address.state)) fields['address.state'] = 'We deliver to the contiguous U.S. and Washington, D.C.';
-    if (source.country !== 'US') fields['address.country'] = 'Delivery is available within the contiguous U.S. and Washington, D.C.';
+    if (!states.has(address.state)) fields['address.state'] = 'We deliver to the lower 48 states and Washington, D.C.';
+    if (source.country !== 'US') fields['address.country'] = 'Delivery is available within the lower 48 states and Washington, D.C.';
     address.postalCode = typeof source.postalCode === 'string' ? source.postalCode.trim() : '';
     if (!/^\d{5}(?:-\d{4})?$/.test(address.postalCode)) {
       fields['address.postalCode'] = 'Enter a five-digit ZIP code, with an optional four-digit extension.';
@@ -71,7 +71,7 @@ export function validateCheckout(value: unknown): ValidationResult<CheckoutReque
       // Reject out-of-area ZIPs even when the submitted state is disguised as an eligible state.
       const zip = Number(address.postalCode.slice(0, 5));
       if ((zip < 1000 && zip !== 501 && zip !== 544) || (zip >= 9000 && zip <= 9999) || (zip >= 34000 && zip <= 34099) || (zip >= 96200 && zip <= 96999) || zip >= 99500) {
-        fields['address.postalCode'] = 'Enter a delivery ZIP code in the contiguous U.S. or Washington, D.C.';
+        fields['address.postalCode'] = 'Enter a delivery ZIP code in the lower 48 states or Washington, D.C.';
       }
     }
   }

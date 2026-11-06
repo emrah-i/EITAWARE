@@ -1,14 +1,24 @@
 # EITAWARE storefront
 
-Solid.js, TypeScript, Tailwind, Hono, Cloudflare Workers Static Assets, D1, Stripe Checkout, and Resend. A small JSON-managed product catalog, initially featuring EITAWARE's dark-blue 12-piece dinnerware set at $79.99 USD.
+Solid.js, TypeScript, Tailwind, Hono, Cloudflare Workers Static Assets, D1, Stripe Checkout, and Resend. A small JSON-managed product catalog, initially featuring EITAWARE's dark-blue 12-piece dinnerware set at $99.99 USD. Marketing prices display as `$99.99`; two sets total `$199.98` before applicable sales tax. Checkout totals and historical payment records retain their actual amounts and two decimal places.
 
 ## Current state
 
 The storefront and API are implemented. Direct checkout is disabled by default. No live Stripe account, tax registrations, Resend verification, MCF seller SKU, or Cloudflare login is included. Missing configuration produces an honest unavailable state with an Amazon purchase link; it does not simulate a successful purchase or contact submission.
 
-The visual system uses self-hosted Josefin Sans for text and controls, serif display headings, a sticky white navigation bar, alternating white/eggshell sections, and subtle rounding on standalone media. The font license is included at `public/fonts/OFL.txt`.
+The visual system uses self-hosted Josefin Sans for text and controls, serif display headings, a sticky white navigation bar, alternating white/eggshell sections, and subtle rounding on standalone media. The top shipping announcement is a full-width link to `/products`, with a separate dismiss button and visible keyboard focus. The product’s quality-controlled note is inside Details & Care. The feature banner starts tan; subsequent homepage sections alternate white and tan, including when coming-soon products are published. Its six features use six columns on desktop, three on tablet, and two on mobile. Direct checkout remains the filled navy primary action. Yellow Amazon CTAs appear only in the product purchase panel and on contact. The homepage closing, product closing, and unavailable-checkout fallback use plain text links; header and footer links remain quiet. The Amazon-purchase FAQ entry is removed. Hero and featured-product Amazon promotions are removed. The product quantity selector is white. The desktop product gallery stays 24px below the measured navigation height and stops at the section boundary. A ResizeObserver fits the preview around thumbnails and changing captions, preserving contain sizing. Layouts at 800px or below, unsupported observers, and windows with less than 240px available preview height retain normal scrolling. Inline emails use safe mail links and are always underlined. Decorative dot separators are removed while prices and sentence punctuation remain. Footer navigation labels use title case; Privacy Policy and Terms of Service sit at the bottom right on desktop/tablet, with no location label. The contact page keeps its support email once in the left column and omits the company/location block and duplicate email prompt. The font license is included at `public/fonts/OFL.txt`. Header and footer wordmarks use live “EITAWARE” text in the brand font; the supplied logo asset remains available for brand metadata. The homepage slogan remains “Simple elegance, beautifully served”; the footer intentionally uses two lines: “Simple Elegance,” and “Beautifully Served.”
 
 Public pages are prerendered during the build, then hydrated with Solid. Hono serves the API and passes public requests to the asset binding. All requests pass through the Worker so it can apply the www redirect and staging noindex headers. This also means public requests invoke the Worker; budget for Worker request usage.
+
+## Motion and image loading
+
+Public content is visible in the initial server-rendered HTML. The small loader in `src/lib/reveal-loader.ts` defers loading until hydration and the first paint finish. Its optional chunk contains `src/lib/reveal.ts` and Motion mini, using native IntersectionObserver for visibility detection. Complete content groups, including their headings, descriptions, calls to action, and media, use a 500ms opacity-only fade with ease-in-out timing. A lightweight CSS animation handles the first paint; Motion handles groups entering the viewport later with the same duration and easing. Groups already visible are never reset or replayed. Explicit `data-reveal-group` markers identify complete groups; `data-reveal-children` batches only the direct children of a container. Do not nest reveal groups. Section backgrounds, navigation, fixed purchase controls, and payment/status feedback remain steady. Reduced-motion preferences, unsupported observers, import/animation failures, keyboard focus, and hash-link targets leave content visible. Base styles and server-rendered content stay visible without JavaScript. Do not reset visible content to transparent, replay effects on scroll, add movement, or delay purchase and support controls.
+
+The Motion module plus reveal initializer must remain within a combined **5KB gzip** budget; `scripts/check-performance.mjs` checks the deferred production chunks plus a conservative gzip estimate of the unminified startup loader. Keep that check when upgrading the animation package. Browser verification should include reduced motion, keyboard focus, anchor navigation, and operation when the motion module fails to load.
+
+Display headings and eyebrow labels omit trailing periods. Headings, eyebrows, and browser titles use no em dashes; body copy, purchase labels, and the guarantee retain their intended punctuation. The standalone homepage intro block is removed. The featured, lifestyle, and FAQ headings are “A beautiful table starts here,” “Every meal beautifully served,” and “Your questions answered.”
+
+Images below the fold use lazy loading and asynchronous decoding through shared media-loading helpers. The homepage hero, first collection card, and initial product-gallery image retain critical-image priority; changing or reordering catalog cards must preserve priority only for the first visible card. Images keep explicit dimensions, responsive sources, and descriptive alternatives. Video playback remains user controlled. The gallery media container and video wrappers use the existing `--cream` page-background token. Gallery photos and videos use `object-fit: contain` so the entire product stays visible.
 
 ## Edit products and media
 
@@ -20,9 +30,9 @@ To prepare another product, copy the object in `examples/catalog-product.json` i
 | --- | --- | --- |
 | `draft` | Hidden from the collection and public product pages; cannot be purchased. | Keep the schema's basic content and media fields valid while preparing the product. |
 | `coming-soon` | Viewable product page with no purchase action. | Nonempty `whatToExpect`; optional `expectedLaunch` text. |
-| `available` | Viewable product with direct purchase controls, subject to server readiness. | Integer `priceCents` (for example, `7999` means $79.99), `currency: "usd"`, and `maxQuantity` from 1 through 10. An actual fulfillment SKU must be configured server-side. |
+| `available` | Viewable product with direct purchase controls, subject to server readiness. | Integer `priceCents` (for example, `9999` means $99.99), `currency: "usd"`, and `maxQuantity` from 1 through 10. An actual fulfillment SKU must be configured server-side. |
 
-All products use USD and specify `maxQuantity` from 1 through 10. The schema in `src/shared/catalog-schema.ts` validates required fields during the build. Product entries include `name`, `title`, `subtitle`, `description`, `quantityLabel`, `image`, `gallery`, `contents`, `specifications`, and `care`; use empty arrays when optional descriptive sections do not apply. Optional `careHighlights` lists supported icon kinds (`dishwasher`, `microwave`, `stack`) and their labels for the homepage; leave it out when those claims do not apply. Optional product facts include `color`, `material`, `pieces`, `serviceFor`, and the product's `asin`/HTTPS `amazonUrl`. Only include supported product claims.
+All products use USD and specify `maxQuantity` from 1 through 10. The schema in `src/shared/catalog-schema.ts` validates required fields during the build. Product entries include `name`, `title`, `subtitle`, `description`, `quantityLabel`, `image`, `gallery`, `contents`, `specifications`, and `care`; use empty arrays when optional descriptive sections do not apply. Optional `careHighlights` lists supported icon kinds (`dishwasher`, `microwave`, `stack`, `lead-free`, `tested`, `refrigerator`) and their labels for the homepage; leave it out when those claims do not apply. Optional product facts include `color`, `material`, `pieces`, `serviceFor`, and `asin`. The optional HTTPS `amazonUrl` catalog field remains accepted for compatibility; it does not control the current storefront's Amazon links. Only include supported product claims. The brand owner confirms supplier information that all products are third-party tested, quality controlled, lead-free, microwave safe, dishwasher safe, and refrigerator safe; the brand-wide FAQ states these facts and retains food safety.
 
 Copy images to `public/images/` and videos to `public/videos/`; reference them with root-relative paths such as `/images/new-product.webp`. The `image` field is the collection cover. The `gallery` array controls media order on the detail page:
 
@@ -42,6 +52,20 @@ Fulfillment is configured separately in the server-only `src/server/fulfillment.
 Add an actual seller SKU for each purchasable product ID. Keep these mappings out of the public catalog. `MCF_SELLER_SKU` is a compatibility fallback for the original `eitaware-dark-blue-12` product only; it does not supply a SKU for new products. An `available` status does not bypass checkout flags, Stripe mode, tax/email readiness, the sales pause, or SKU validation. Inventory is still checked manually in Seller Central.
 
 After editing JSON or adding media, run `npm run check`, `npm test`, and `npm run build`, then redeploy. Preview the collection, each product page, media order, mobile layout, and checkout for the intended product. Confirm that drafts stay hidden and coming-soon products have no checkout path. The built site does not change when a local JSON file is edited; deployment publishes the changes. This catalog does not add variations, a multi-product cart, an admin editor, or a waitlist.
+
+## Amazon links and Attribution
+
+`src/shared/amazon.ts` is the authoritative source for the current storefront's Amazon links. `AMAZON_URL` is the main URL, currently the exact supplied Amazon Attribution URL:
+
+```text
+https://www.amazon.com/dp/B0H8X1MSP5?maas=maas_adg_24A2C9F4135E9FCE114E5166E9516EB1_afap_abs&ref_=aa_maas&tag=maas
+```
+
+All current Amazon links use this complete value. Every placement without an override uses the main value. Do not remove or reorder its attribution query parameters.
+
+`AMAZON_PLACEMENT_URLS` is an optional partial map for placement-specific Attribution links. Its supported keys are `header`, `homepageHero`, `homepageFeatured`, `homepageFaq`, `homepageBottom`, `productPage`, `productPageBottom`, `footer`, `contactPage`, and `checkoutFallback`. `homepageHero`, `homepageFeatured`, and `homepageFaq` remain reserved configuration keys but have no active homepage links. Change only the placements that need their own URL; omitted, empty, or whitespace-only overrides fall back to `AMAZON_URL`.
+
+Paste the complete URL provided by Amazon, preserving its attribution query parameters. `amazonUrl(placement)` accepts HTTPS links on `amazon.com` or `www.amazon.com` with no embedded login credentials and returns the URL without rewriting its query string. An override affects only its named placement. Run the checks, rebuild, and redeploy after changing these values, then verify the rendered links. The current Everyday Set has no catalog `amazonUrl`, so all its active links use this central configuration. For future products, an optional catalog `amazonUrl` remains a compatibility fallback for product-specific links: a placement override wins, then the explicit product URL, then `AMAZON_URL`. Brand-wide links use the main URL or their placement override.
 
 ## Local development
 
@@ -71,6 +95,8 @@ Use the signing secret returned by that CLI in the local vars file. Never use a 
 npm run check
 npm test
 npm run build
+node scripts/verify-storefront.mjs
+node scripts/check-performance.mjs
 npx wrangler deploy --env staging --dry-run
 ```
 
@@ -153,10 +179,19 @@ Stripe sends the customer's payment receipt. The owner sends shipping/tracking m
 3. Check FBA/MCF stock. In Seller Central, create an MCF order using the seller SKU, quantity, confirmed recipient/address, and standard delivery. Use the website reference as the MCF order reference.
 4. Record the MCF order ID in the Stripe payment's notes or your order log. Submit within the promised 1–2 business day handling window.
 5. Send the buyer their delivery estimate and tracking when available. Direct orders do not inherit Amazon Prime or Amazon marketplace return promises.
-6. For returns, ask the customer to contact support within 30 days of delivery, then send return instructions. Unused sets need original packaging. Buyer pays return shipping unless the arrival was damaged/incorrect. Do not tell customers to return items to an unspecified warehouse.
-7. Handle the physical return through your MCF process and the payment refund separately in Stripe. Partial/full refunds update the local order state through `charge.refunded`.
+6. For an eitaware.com order with any broken piece, ask the customer to email support@eitaware.com with a photo and their order reference within 7 days of delivery. Arrange a brand-new replacement set at no cost or a full refund under the guarantee below. A replacement means a complete new set, not just the broken piece; use the correct set SKU and quantity in MCF. Do not charge replacement shipping or require the customer to ship anything back. Record the replacement MCF reference against the original website order so it is not mistaken for duplicate fulfillment.
+7. For other returns, ask the customer to contact support within 30 days of delivery, then send return instructions. Unused sets need original packaging. Buyer pays return shipping unless we sent the wrong item. Do not tell customers to return items to an unspecified warehouse.
+8. Handle any authorized physical return through your MCF process and issue payment refunds separately in Stripe. The broken-arrival guarantee does not require a physical return. Partial/full refunds update the local order state through `charge.refunded`.
 
 Reconcile Stripe's paid payments with owner emails and MCF records regularly; email is not the sole order record. The public confirmation page distinguishes paid, fully refunded, and partially refunded orders. The Stripe Dashboard remains authoritative for the exact refund amount and current payment details.
+
+### Broken-arrival guarantee
+
+The customer-facing promise in `src/shared/guarantee.ts` applies to orders placed on eitaware.com:
+
+> If any piece arrives broken, email support@eitaware.com with a photo and your order reference within 7 days of delivery. We'll send a brand-new replacement set at no cost or provide a full refund. No need to ship anything back.
+
+Honor this promise separately from the 30-day unused-item return policy. Amazon purchases remain subject to Amazon's order-support process.
 
 ### Pause and resume sales
 
@@ -168,6 +203,8 @@ npm run store:pause -- --env production
 ```
 
 Check Stripe for payments completing during the pause and any session-expiration failures. In-flight payment races can still complete; reconcile/refund unavailable orders rather than creating an unfulfillable MCF request.
+
+Use the same `store:pause` workflow before changing a live price. Confirm that existing unpaid Stripe sessions have been expired, resolve expiration failures and payments already in flight, then edit `priceCents`, rebuild, and deploy. Existing open sessions can otherwise retain the old price. Never rewrite historical paid-order prices, totals, or product snapshots to match a new retail price. Resume only after checking the new storefront price, checkout total, and stock.
 
 Resume only after checking stock:
 
@@ -205,7 +242,9 @@ Use Workers deployments/rollback to revert application code. Migrations are addi
 
 Optimized assets are included under `public/`. To regenerate from the supplied originals, install ffmpeg and run `npm run assets:prepare`. It reads `../Listing/Listing` and `../Logos/EITAWARE.png` by default; override `EITAWARE_ASSET_ROOT` and `EITAWARE_LOGO` if your folders differ. Original files are never changed. Pic 5 is omitted because its embedded cookbook text is distracting.
 
-Product dimensions are 10-inch dinner plates, 8-inch salad plates, and 5.5-inch bowls, four of each. Do not add certifications, manufacturing locations, warranties, reviews, or new product claims without support.
+Product dimensions are 10-inch dinner plates, 8-inch salad plates, and 5.5-inch bowls, four of each. The brand slogan is “Simple elegance, beautifully served.” The owner supplied the product wording “Lead-free,” “Third-party tested,” “Refrigerator safe,” and “Quality controlled”; the site adds no laboratory names, certification marks, test standards, or inspection-process details. Do not add certifications, manufacturing locations, warranties, reviews, or new product claims without support.
+
+The `/faq` page is prerendered, included in the sitemap, and linked from desktop/mobile navigation and the footer. Its ten expandable answers appear in this order: food safety, included pieces and dimensions, dishwasher use, microwave use, shipping/processing, broken arrivals, returns, refrigerator use, glaze variation, and temperature changes. Keep answers consistent with catalog facts, the shared guarantee in `src/shared/guarantee.ts`, and existing policies. Competitor care pages informed question topics only; their product claims and temperature limits are not EITAWARE specifications. The FAQ uses descriptive metadata and a canonical URL, without FAQ-rich-result claims.
 
 Josefin Sans is self-hosted at `public/fonts/JosefinSans-Variable.ttf`, downloaded unmodified from the [official Google Fonts repository](https://github.com/google/fonts/tree/main/ofl/josefinsans). The normal variable font supports weights 100–700. Its SIL Open Font License is included at `public/fonts/OFL.txt`; retain the license when redistributing the font. The website does not need a runtime request to Google Fonts.
 

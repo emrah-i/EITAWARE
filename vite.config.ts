@@ -17,6 +17,6 @@ export default defineConfig(({ isSsrBuild }) => ({
     },
     solid({ ssr: true }), tailwindcss(),
   ],
-  build: { outDir: 'dist/client', target: 'es2022' },
+  build: { outDir: 'dist/client', target: 'es2022', manifest: !isSsrBuild, modulePreload: false },
   server: { proxy: { '/api': 'http://127.0.0.1:8787' } },
 }));

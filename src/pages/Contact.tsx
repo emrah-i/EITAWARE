@@ -1,4 +1,6 @@
+import EmailText from '../components/EmailText';
 import { createSignal, Show } from 'solid-js';
+import { amazonUrl } from '../shared/amazon';
 import { BRAND } from '../shared/catalog';
 import type { ApiError, ContactRequest, ContactResponse } from '../shared/types';
 
@@ -62,24 +64,23 @@ export default function Contact() {
 
   return (
     <main id="main-content" tabIndex={-1} class="page-shell contact-page">
-      <header class="page-intro">
-        <p class="eyebrow">A seat at our table</p>
-        <h1>We’re here to help.</h1>
+      <header class="page-intro" data-reveal-group="">
+        <p class="eyebrow">Customer care</p>
+        <h1>We’re here to help</h1>
         <p>Questions about your dinnerware, an order, or something else? Send us a note.</p>
       </header>
       <div class="contact-layout">
-        <aside class="contact-details">
+        <aside class="contact-details" data-reveal-group="">
           <h2>Get in touch</h2>
           <p><a href={`mailto:${BRAND.supportEmail}`}>{BRAND.supportEmail}</a></p>
-          <p>{BRAND.legalName}<br />{BRAND.state}, United States</p>
           <p>For an existing order, include your order reference so we can find the details.</p>
           <p>For Amazon purchases, you can also find order support in your Amazon account.</p>
-          <a class="button button-secondary" href={BRAND.amazonUrl} target="_blank" rel="noopener noreferrer">Visit us on Amazon <span aria-hidden="true">↗</span></a>
+          <a class="button-secondary amazon-cta" href={amazonUrl('contactPage')} target="_blank" rel="noopener">Visit us on Amazon <span aria-hidden="true">↗</span></a>
         </aside>
         <section aria-label="Contact form">
           <Show when={reference()} fallback={
             <form onSubmit={submit} aria-busy={busy()}>
-              <div class="form-grid">
+              <div class="contact-fields" data-reveal-group=""><div class="form-grid">
                 <div class="field">
                   <label for="contact-name">Name <span aria-hidden="true">*</span></label>
                   <input id="contact-name" name="name" autocomplete="name" required minlength="2" maxlength="100" aria-invalid={!!fields().name} aria-describedby={fields().name ? 'contact-name-error' : undefined} />
@@ -104,19 +105,20 @@ export default function Contact() {
               </div>
               <div class="form-honeypot" aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: '1px', height: '1px', overflow: 'hidden' }}>
                 <label for="contact-website">Leave this field empty</label>
-                <input id="contact-website" name="website" tabindex="-1" autocomplete="off" />
+                <input id="contact-website" aria-hidden="true" name="website" tabindex="-1" autocomplete="off" />
               </div>
-              <Show when={error()}><p class="notice" role="alert">{error()}</p></Show>
-              <p class="form-note">We use your details to respond to your message. Read our <a href="/privacy">privacy policy</a>.</p>
+              </div>
+              <Show when={error()}><p class="notice" role="alert"><EmailText text={error()} /></p></Show>
+              <div class="contact-actions" data-reveal-group=""><p class="form-note">We use your details to respond to your message. Read our <a href="/privacy">privacy policy</a>.</p>
               <button type="submit" class="button" disabled={busy()}>{busy() ? 'Sending…' : 'Send message'}</button>
-              <p class="form-note">Prefer email? Reach us at <a href={`mailto:${BRAND.supportEmail}`}>{BRAND.supportEmail}</a>.</p>
+              </div>
             </form>
           }>
             <div class="notice" role="status" aria-live="polite">
-              <h2>Thank you for your note.</h2>
+              <h2>Thank you for your note</h2>
               <p>Your message has been received. Our team will reply by email.</p>
               <p class="form-note">Reference: {reference()}</p>
-              <button type="button" class="button button-secondary" onClick={() => setReference('')}>Send another message</button>
+              <button type="button" class="button-secondary" onClick={() => setReference('')}>Send another message</button>
             </div>
           </Show>
         </section>

@@ -96,6 +96,9 @@ async function createSession(env: Env, value: ReturnType<typeof validateCheckout
   if (order.product_id !== request.productId || (order.request_hash !== requestHash && !legacyMatch)) throw new CheckoutError('Your checkout details changed. Refresh checkout and try again.', 409, 'checkout_changed');
   if (order.status === 'paid' || order.status === 'refunded' || order.status === 'partially_refunded') throw new CheckoutError('Payment was already received for this checkout. Check your receipt or contact support before placing another order.', 409, 'checkout_paid');
   if (order.status !== 'pending') throw new CheckoutError('This checkout expired. Start a new checkout.', 409, 'checkout_expired');
+  // An idempotency retry must not reopen an old price after a catalog update.
+  // Keep its snapshot intact for delayed signed payment/refund events.
+  if (order.unit_price_cents !== product.priceCents || order.currency !== product.currency) throw new CheckoutError('The price changed since this checkout began. Start a new checkout to see the current price.', 409, 'checkout_expired');
   // Stripe retains idempotency results for at least 24 hours. Never reuse an old key after that window.
   if (order.created_at < now - 23 * 60 * 60 || (order.expires_at !== null && order.expires_at <= now)) throw new CheckoutError('This checkout expired. Start a new checkout.', 409, 'checkout_expired');
   if (order.stripe_session_url) return order.stripe_session_url;

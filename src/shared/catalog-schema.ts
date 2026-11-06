@@ -1,11 +1,12 @@
 export type ProductStatus = 'draft' | 'coming-soon' | 'available';
 export interface ImageMedia {
-  type: 'image'; src: string; thumbnail?: string; width: number; height: number; alt: string; label: string;
+  type: 'image'; src: string; thumbnail?: string; thumbnailAlt?: string; width: number; height: number; alt: string; label: string;
 }
 export interface VideoMedia {
-  type: 'video'; src: string; poster: string; label: string; caption?: string;
+  type: 'video'; src: string; poster: string; thumbnailAlt?: string; label: string; caption?: string;
 }
 export type CatalogMedia = ImageMedia | VideoMedia;
+export type CareKind = 'dishwasher' | 'microwave' | 'stack' | 'lead-free' | 'tested' | 'refrigerator';
 export interface CatalogProduct {
   id: string; slug: string; status: ProductStatus; name: string; title: string; subtitle: string; description: string;
   image: string; gallery: CatalogMedia[]; priceCents?: number; currency: 'usd'; maxQuantity: number;
@@ -13,7 +14,7 @@ export interface CatalogProduct {
   asin?: string; amazonUrl?: string; color?: string; material?: string; pieces?: number; serviceFor?: number;
   contents: { name: string; quantity: number; size: string; caption: string }[];
   specifications: { label: string; value: string }[]; care: string[];
-  careHighlights?: { kind: 'dishwasher' | 'microwave' | 'stack'; label: string }[];
+  careHighlights?: { kind: CareKind; label: string }[];
 }
 export interface Catalog { featuredProductId: string; products: CatalogProduct[]; }
 
@@ -52,6 +53,7 @@ export function parseCatalog(input: unknown): Catalog {
     if (!Array.isArray(product.gallery) || !product.gallery.length) return fail(`${at} needs gallery media.`);
     for (const media of product.gallery) {
       if (!record(media) || !text(media.label)) return fail(`${at} has invalid media.`);
+      if (media.thumbnailAlt !== undefined && !text(media.thumbnailAlt)) return fail(`${at} thumbnailAlt must be nonempty text.`);
       if (media.type === 'image') {
         if (!localImage(media.src) || !text(media.alt) || !Number.isInteger(media.width) || Number(media.width) < 1 || !Number.isInteger(media.height) || Number(media.height) < 1 || (media.thumbnail !== undefined && !localImage(media.thumbnail))) return fail(`${at} has invalid image metadata.`);
       } else if (media.type === 'video') {
@@ -60,7 +62,7 @@ export function parseCatalog(input: unknown): Catalog {
     }
     if (!Array.isArray(product.contents) || product.contents.some(piece => !record(piece) || !text(piece.name) || !text(piece.size) || !text(piece.caption) || !Number.isInteger(piece.quantity) || Number(piece.quantity) < 1)) return fail(`${at} has invalid contents.`);
     if (!Array.isArray(product.specifications) || product.specifications.some(spec => !record(spec) || !text(spec.label) || !text(spec.value))) return fail(`${at} has invalid specifications.`);
-    if (product.careHighlights !== undefined && (!Array.isArray(product.careHighlights) || product.careHighlights.some(item => !record(item) || !['dishwasher', 'microwave', 'stack'].includes(String(item.kind)) || !text(item.label)))) return fail(`${at} has invalid care highlights.`);
+    if (product.careHighlights !== undefined && (!Array.isArray(product.careHighlights) || product.careHighlights.some(item => !record(item) || !['dishwasher', 'microwave', 'stack', 'lead-free', 'tested', 'refrigerator'].includes(String(item.kind)) || !text(item.label)))) return fail(`${at} has invalid care highlights.`);
     if (!Array.isArray(product.care) || product.care.some(line => !text(line))) return fail(`${at} care must be an array of text.`);
   }
   const featured = input.products.find(product => product.id === input.featuredProductId);

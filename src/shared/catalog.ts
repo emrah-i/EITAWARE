@@ -12,12 +12,20 @@ export const productPath = (product: { slug: string }) => `/products/${product.s
 
 export const BRAND = {
   name: 'EITAWARE', legalName: 'M Sqware LLC', state: 'Maryland',
+  slogan: 'Simple elegance, beautifully served',
   url: 'https://eitaware.com', supportEmail: 'support@eitaware.com', ordersEmail: 'orders@eitaware.com',
-  amazonUrl: 'https://www.amazon.com/dp/B0H8X1MSP5',
 } as const;
 
 export function money(cents: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
+}
+
+/** Marketing prices omit .00; receipts and order totals continue to use money(). */
+export function storePrice(cents: number, currency = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency, minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }
 
 export const SHIPPING_STATES = [
