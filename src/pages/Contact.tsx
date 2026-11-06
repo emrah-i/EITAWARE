@@ -83,23 +83,23 @@ export default function Contact() {
               <div class="contact-fields" data-reveal-group=""><div class="form-grid">
                 <div class="field">
                   <label for="contact-name">Name <span aria-hidden="true">*</span></label>
-                  <input id="contact-name" name="name" autocomplete="name" required minlength="2" maxlength="100" aria-invalid={!!fields().name} aria-describedby={fields().name ? 'contact-name-error' : undefined} />
+                  <input id="contact-name" placeholder="Your name" name="name" autocomplete="name" required minlength="2" maxlength="100" aria-invalid={!!fields().name} aria-describedby={fields().name ? 'contact-name-error' : undefined} />
                   <Show when={fields().name}><p class="field-error" id="contact-name-error">{fields().name}</p></Show>
                 </div>
                 <div class="field">
                   <label for="contact-email">Email <span aria-hidden="true">*</span></label>
-                  <input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254" aria-invalid={!!fields().email} aria-describedby={fields().email ? 'contact-email-error' : undefined} />
+                  <input id="contact-email" placeholder="you@example.com" name="email" type="email" autocomplete="email" required maxlength="254" aria-invalid={!!fields().email} aria-describedby={fields().email ? 'contact-email-error' : undefined} />
                   <Show when={fields().email}><p class="field-error" id="contact-email-error">{fields().email}</p></Show>
                 </div>
               </div>
               <div class="field">
                 <label for="contact-subject">Subject <span aria-hidden="true">*</span></label>
-                <input id="contact-subject" name="subject" required minlength="2" maxlength="150" aria-invalid={!!fields().subject} aria-describedby={fields().subject ? 'contact-subject-error' : undefined} />
+                <input id="contact-subject" placeholder="How can we help?" name="subject" required minlength="2" maxlength="150" aria-invalid={!!fields().subject} aria-describedby={fields().subject ? 'contact-subject-error' : undefined} />
                 <Show when={fields().subject}><p class="field-error" id="contact-subject-error">{fields().subject}</p></Show>
               </div>
               <div class="field">
                 <label for="contact-message">Message <span aria-hidden="true">*</span></label>
-                <textarea id="contact-message" name="message" required minlength="10" maxlength="5000" rows="7" aria-invalid={!!fields().message} aria-describedby={fields().message ? 'contact-message-error' : 'contact-message-note'} />
+                <textarea id="contact-message" placeholder="Tell us how we can help. Include your order reference if applicable." name="message" required minlength="10" maxlength="5000" rows="7" aria-invalid={!!fields().message} aria-describedby={fields().message ? 'contact-message-error' : 'contact-message-note'} />
                 <Show when={fields().message}><p class="field-error" id="contact-message-error">{fields().message}</p></Show>
                 <p class="form-note" id="contact-message-note">Please leave out card numbers and other sensitive payment details.</p>
               </div>

@@ -10,9 +10,11 @@ import Contact from './pages/Contact';
 import Faq from './pages/Faq';
 import PolicyPage from './pages/Policies';
 import { deferReveals } from './lib/reveal-loader';
+import { attachPolicyScroll } from './lib/policy-scroll';
 
 export default function App(props: { path: string }) {
   onMount(() => {
+    onCleanup(attachPolicyScroll(window));
     const root = document.getElementById('root');
     if (root) onCleanup(deferReveals(root));
   });

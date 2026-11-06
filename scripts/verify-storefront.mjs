@@ -22,7 +22,7 @@ assert.ok(oldestOutput >= newestInput, 'The built storefront is stale. Run npm r
 
 const { CATALOG, routes, renderPage, AMAZON_PLACEMENTS, amazonUrl } = await import(pathToFileURL(serverEntry).href);
 const current = CATALOG.products.find(product => product.id === 'eitaware-dark-blue-12');
-assert.equal(current?.priceCents, 9999, 'The current dinnerware offer must be $99.99 per set.');
+assert.equal(current?.priceCents, 7999, 'The current dinnerware offer must be $79.99 per set.');
 const productRoute = `/products/${current.slug}`;
 const decode = value => value.replace(/&(?:amp|quot|apos|lt|gt|#39|#x27);/g, entity => ({ '&amp;': '&', '&quot;': '"', '&apos;': "'", '&#39;': "'", '&#x27;': "'", '&lt;': '<', '&gt;': '>' })[entity]);
 const text = html => decode(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
@@ -36,10 +36,10 @@ const product = pages.get(productRoute);
 assert.ok(product, 'The current product needs a prerendered detail page.');
 
 for (const route of ['/', '/products', productRoute, '/checkout']) {
-  assert.match(text(pages.get(route)), /\$99\.99\b/, `${route} must display the current price.`);
+  assert.match(text(pages.get(route)), /\$79\.99\b/, `${route} must display the current price.`);
 }
 for (const [route, html] of pages) {
-  assert.doesNotMatch(text(html), /\$(?:79\.99|69\.99|99\.00)\b|\$99(?![\d.])/, `${route} still displays an old price.`);
+  assert.doesNotMatch(text(html), /\$(?:99\.99|69\.99|99\.00)\b|\$99(?![\d.])/, `${route} still displays an old price.`);
   assert.doesNotMatch(text(html), /\b01\s*\/\s*01\b/, `${route} still displays the obsolete single-item counter.`);
   assert.doesNotMatch(text(html), /terms of sale|deep blue/i, `${route} contains superseded customer-facing copy.`);
   for (const heading of html.matchAll(/<h[123]\b[^>]*>([\s\S]*?)<\/h[123]>/g)) {
@@ -87,8 +87,8 @@ assert.ok(images(pages.get('/checkout')).every(photo => photo.loading === 'lazy'
 
 const jsonLd = [...product.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(match => JSON.parse(match[1]));
 const offer = jsonLd.find(item => item['@type'] === 'Product')?.offers;
-assert.deepEqual({ price: offer?.price, currency: offer?.priceCurrency, url: offer?.url }, { price: '99.99', currency: 'USD', url: `https://eitaware.com${productRoute}` });
-assert.equal(JSON.parse(renderPage(productRoute).structuredData).offers.price, '99.99', 'Server-rendered offer and saved HTML must agree.');
+assert.deepEqual({ price: offer?.price, currency: offer?.priceCurrency, url: offer?.url }, { price: '79.99', currency: 'USD', url: `https://eitaware.com${productRoute}` });
+assert.equal(JSON.parse(renderPage(productRoute).structuredData).offers.price, '79.99', 'Server-rendered offer and saved HTML must agree.');
 
 const amazonSource = await readFile(join(root, 'src/shared/amazon.ts'), 'utf8');
 const mainAmazonUrl = amazonSource.match(/export const AMAZON_URL\s*=\s*['"]([^'"]+)['"]/u)?.[1];
@@ -134,7 +134,7 @@ assert.ok(checkoutFallback && hasClass(attributes(checkoutFallback[1]), 'amazon-
 
 const guarantee = {
   headline: "Arrives perfect, or it's on us.",
-  text: "If any piece arrives broken, email support@eitaware.com with a photo and your order reference within 7 days of delivery. We'll send a brand-new replacement set at no cost or provide a full refund. No need to ship anything back.",
+  text: "If any piece arrives broken, you must email support@eitaware.com within 7 days of delivery with your order reference and an in-depth video clearly showing the set, all damaged pieces, and the packaging. We'll send a brand-new replacement set at no cost or provide a full refund. No need to ship anything back.",
   qualification: 'Applies to orders placed on eitaware.com.', href: '/shipping-returns#arrives-perfect',
 };
 for (const [route, html] of [['/', home], [productRoute, product], ['/shipping-returns', pages.get('/shipping-returns')]]) {
@@ -142,11 +142,12 @@ for (const [route, html] of [['/', home], [productRoute, product], ['/shipping-r
   assert.ok(text(html).includes(guarantee.qualification), `${route} must qualify the promise as website orders.`);
 }
 const purchaseLinks = links(product);
-const direct = purchaseLinks.find(link => hasClass(link, 'product-buy'));
+const directMarkup = [...product.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)].find(match => hasClass(attributes(match[1]), 'product-buy'));
+const direct = directMarkup && { ...attributes(directMarkup[1]), text: text(directMarkup[2]) };
 const amazon = purchaseLinks.find(link => hasClass(link, 'amazon-product'));
 const guaranteeLink = purchaseLinks.find(link => hasClass(link, 'purchase-guarantee'));
-assert.equal(direct?.href, `/checkout?product=${current.id}&quantity=1`);
-assert.equal(direct?.text, 'Buy now — $99.99');
+assert.ok(directMarkup?.[1].includes(' disabled'), 'Purchase must fail closed until availability is confirmed.');
+assert.equal(direct?.text, 'Buy now — $79.99');
 assert.ok(hasClass(direct, 'button') && !hasClass(direct, 'button-secondary'), 'Direct purchase must be the primary action.');
 assert.ok(hasClass(amazon, 'amazon-cta') && !hasClass(amazon, 'button'), 'Amazon must keep its yellow CTA treatment without taking the primary purchase class.');
 assert.ok(product.indexOf('product-buy') < product.indexOf('purchase-guarantee') && product.indexOf('purchase-guarantee') < product.indexOf('amazon-product'), 'The guarantee belongs directly below direct purchase and above Amazon.');
@@ -248,7 +249,7 @@ for (const route of ['/privacy', '/terms']) assert.ok(text(pages.get(route)).inc
 assert.match(pages.get('/terms'), /<title>Terms of service \| EITAWARE<\/title>/);
 assert.equal(text(pages.get('/terms').match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] || ''), 'Terms of service');
 
-console.log(`Verified ${pages.size} built routes: $99.99 offer, JSON-LD, ${amazonLinkCount} exact Attribution links, two yellow shopping CTAs, neutral homepage/product-closing/checkout links, ${revealGroupCount} non-nested reveal groups, full-set guarantee placement/qualification, FAQ, six feature labels, live-text wordmarks, two-line footer slogan, approved headings/quality note, terms copy/dates, direct purchase hierarchy, and eight descriptive thumbnails.`);
+console.log(`Verified ${pages.size} built routes: $79.99 offer, JSON-LD, ${amazonLinkCount} exact Attribution links, two yellow shopping CTAs, neutral homepage/product-closing/checkout links, ${revealGroupCount} non-nested reveal groups, full-set guarantee placement/qualification, FAQ, six feature labels, live-text wordmarks, two-line footer slogan, approved headings/quality note, terms copy/dates, direct purchase hierarchy, and eight descriptive thumbnails.`);
 
 // Public text separators, email links, accordion labels, and homepage promotions.
 for (const [route, html] of pages) {
@@ -304,3 +305,27 @@ for (const statement of [
   'Yes. All our products are microwave safe.',
   'Yes. All our products are refrigerator safe.',
 ]) assert.ok(text(faqMain).includes(statement), `The FAQ must retain the supplier-confirmed statement: ${statement}`);
+
+const requiredVideo = 'an in-depth video clearly showing the set, all damaged pieces, and the packaging';
+for (const route of ['/', productRoute, '/faq', '/shipping-returns', '/terms']) {
+  const html = pages.get(route);
+  assert.ok(text(html).includes(requiredVideo), `${route} must require the agreed video evidence.`);
+  assert.doesNotMatch(text(html), /with a photo|send (?:us )?(?:a )?photos?|photo evidence/i, `${route} still requests photo evidence.`);
+}
+assert.ok(text(pages.get('/terms')).includes('Broken-arrival guarantee claims require ' + requiredVideo), 'Terms must explicitly require video for broken-arrival guarantee claims.');
+
+assert.ok(text(pages.get('/privacy')).includes('video evidence showing the set, all damaged pieces, and the packaging'), 'Privacy must describe video evidence collected for guarantee claims.');
+
+// Availability is unresolved in prerendered HTML: no checkout field may be editable.
+const checkoutHtml = pages.get('/checkout');
+for (const field of checkoutHtml.matchAll(/<(?:input|select)\b([^>]*)>/g)) {
+  assert.match(field[1], /\bdisabled\b/, 'Every checkout input must be disabled before availability is confirmed.');
+  const attrs = attributes(field[1]);
+  if (!['delivery-country', 'delivery-state'].includes(attrs.id)) assert.ok(attrs.placeholder, `${attrs.id} needs a placeholder.`);
+}
+for (const id of ['contact-name', 'contact-email', 'contact-subject', 'contact-message']) {
+  const markup = pages.get('/contact').match(new RegExp(`<(?:input|textarea)\\b[^>]*id="${id}"[^>]*>`));
+  assert.ok(markup && attributes(markup[0]).placeholder, `${id} needs a helpful placeholder.`);
+}
+assert.match(await readFile(join(root, 'src/styles.css'), 'utf8'), /\.gallery-thumbnails img[^}]*object-fit: contain/, 'Thumbnails must show the full image.');
+console.log('Verified fail-closed purchase buttons, disabled checkout inputs, placeholders, and uncropped thumbnails.');

@@ -1,6 +1,8 @@
 # EITAWARE storefront
 
-Solid.js, TypeScript, Tailwind, Hono, Cloudflare Workers Static Assets, D1, Stripe Checkout, and Resend. A small JSON-managed product catalog, initially featuring EITAWARE's dark-blue 12-piece dinnerware set at $99.99 USD. Marketing prices display as `$99.99`; two sets total `$199.98` before applicable sales tax. Checkout totals and historical payment records retain their actual amounts and two decimal places.
+Solid.js, TypeScript, Tailwind, Hono, Cloudflare Workers Static Assets, D1, Stripe Checkout, and Resend. A small JSON-managed product catalog, initially featuring EITAWARE's dark-blue 12-piece dinnerware set at $79.99 USD. Marketing prices display as `$79.99`; two sets total `$159.98` before applicable sales tax. Checkout totals and historical payment records retain their actual amounts and two decimal places.
+
+Purchase controls fail closed while `/api/product` is loading, unavailable, incompatible with the catalog, or cannot be verified. All checkout fields and quantity/review/payment controls are disabled in those states and while submitting payment. Product-page purchase controls use the same availability validation. A small Solid tooltip explains disabled purchase controls on hover or keyboard focus and dismisses with Escape; Amazon links stay usable. Checkout/contact fields have descriptive placeholders without replacing labels. Product previews, videos, and thumbnails use contain sizing so the entire source media remains visible. Ordinary privacy, terms, and shipping/returns visits—including restored visits—start at the top; explicit guarantee anchors retain their section jump. No React runtime or tooltip dependency was added.
 
 ## Current state
 
@@ -30,7 +32,7 @@ To prepare another product, copy the object in `examples/catalog-product.json` i
 | --- | --- | --- |
 | `draft` | Hidden from the collection and public product pages; cannot be purchased. | Keep the schema's basic content and media fields valid while preparing the product. |
 | `coming-soon` | Viewable product page with no purchase action. | Nonempty `whatToExpect`; optional `expectedLaunch` text. |
-| `available` | Viewable product with direct purchase controls, subject to server readiness. | Integer `priceCents` (for example, `9999` means $99.99), `currency: "usd"`, and `maxQuantity` from 1 through 10. An actual fulfillment SKU must be configured server-side. |
+| `available` | Viewable product with direct purchase controls, subject to server readiness. | Integer `priceCents` (for example, `7999` means $79.99), `currency: "usd"`, and `maxQuantity` from 1 through 10. An actual fulfillment SKU must be configured server-side. |
 
 All products use USD and specify `maxQuantity` from 1 through 10. The schema in `src/shared/catalog-schema.ts` validates required fields during the build. Product entries include `name`, `title`, `subtitle`, `description`, `quantityLabel`, `image`, `gallery`, `contents`, `specifications`, and `care`; use empty arrays when optional descriptive sections do not apply. Optional `careHighlights` lists supported icon kinds (`dishwasher`, `microwave`, `stack`, `lead-free`, `tested`, `refrigerator`) and their labels for the homepage; leave it out when those claims do not apply. Optional product facts include `color`, `material`, `pieces`, `serviceFor`, and `asin`. The optional HTTPS `amazonUrl` catalog field remains accepted for compatibility; it does not control the current storefront's Amazon links. Only include supported product claims. The brand owner confirms supplier information that all products are third-party tested, quality controlled, lead-free, microwave safe, dishwasher safe, and refrigerator safe; the brand-wide FAQ states these facts and retains food safety.
 
@@ -179,7 +181,7 @@ Stripe sends the customer's payment receipt. The owner sends shipping/tracking m
 3. Check FBA/MCF stock. In Seller Central, create an MCF order using the seller SKU, quantity, confirmed recipient/address, and standard delivery. Use the website reference as the MCF order reference.
 4. Record the MCF order ID in the Stripe payment's notes or your order log. Submit within the promised 1–2 business day handling window.
 5. Send the buyer their delivery estimate and tracking when available. Direct orders do not inherit Amazon Prime or Amazon marketplace return promises.
-6. For an eitaware.com order with any broken piece, ask the customer to email support@eitaware.com with a photo and their order reference within 7 days of delivery. Arrange a brand-new replacement set at no cost or a full refund under the guarantee below. A replacement means a complete new set, not just the broken piece; use the correct set SKU and quantity in MCF. Do not charge replacement shipping or require the customer to ship anything back. Record the replacement MCF reference against the original website order so it is not mistaken for duplicate fulfillment.
+6. For an eitaware.com order with any broken piece, ask the customer to email support@eitaware.com within 7 days of delivery with their order reference and a required in-depth video clearly showing the set, all damaged pieces, and the packaging. Arrange a brand-new replacement set at no cost or a full refund under the guarantee below. A replacement means a complete new set, not just the broken piece; use the correct set SKU and quantity in MCF. Do not charge replacement shipping or require the customer to ship anything back. Record the replacement MCF reference against the original website order so it is not mistaken for duplicate fulfillment.
 7. For other returns, ask the customer to contact support within 30 days of delivery, then send return instructions. Unused sets need original packaging. Buyer pays return shipping unless we sent the wrong item. Do not tell customers to return items to an unspecified warehouse.
 8. Handle any authorized physical return through your MCF process and issue payment refunds separately in Stripe. The broken-arrival guarantee does not require a physical return. Partial/full refunds update the local order state through `charge.refunded`.
 
@@ -189,7 +191,7 @@ Reconcile Stripe's paid payments with owner emails and MCF records regularly; em
 
 The customer-facing promise in `src/shared/guarantee.ts` applies to orders placed on eitaware.com:
 
-> If any piece arrives broken, email support@eitaware.com with a photo and your order reference within 7 days of delivery. We'll send a brand-new replacement set at no cost or provide a full refund. No need to ship anything back.
+> If any piece arrives broken, you must email support@eitaware.com within 7 days of delivery with your order reference and an in-depth video clearly showing the set, all damaged pieces, and the packaging. We'll send a brand-new replacement set at no cost or provide a full refund. No need to ship anything back.
 
 Honor this promise separately from the 30-day unused-item return policy. Amazon purchases remain subject to Amazon's order-support process.
 

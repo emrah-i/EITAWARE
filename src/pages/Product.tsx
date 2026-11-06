@@ -5,6 +5,8 @@ import { ARRIVES_PERFECT } from '../shared/guarantee';
 import { attachStickyGallery } from '../lib/sticky-gallery';
 import EmailText from '../components/EmailText';
 import GalleryVideo from '../components/GalleryVideo';
+import PurchaseButton from '../components/PurchaseButton';
+import { productAvailability } from '../lib/product-availability';
 import { ArrowIcon } from '../components/Icon';
 
 export default function Product(props: { product: CatalogProduct }) {
@@ -19,6 +21,17 @@ export default function Product(props: { product: CatalogProduct }) {
   const media = () => product.gallery[active()];
   const checkout = () => `/checkout?product=${encodeURIComponent(product.id)}&quantity=${quantity()}`;
   const thumbnailAlt = (item: CatalogMedia) => item.thumbnailAlt || (item.type === 'image' ? item.alt : `Video: ${item.label}`);
+  const [available, setAvailable] = createSignal(false);
+  const [loading, setLoading] = createSignal(true);
+  onMount(() => {
+    const controller = new AbortController();
+    onCleanup(() => controller.abort());
+    if (product.status !== 'available') { setLoading(false); return; }
+    void productAvailability(product, AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]))
+      .then(current => { if (!controller.signal.aborted) setAvailable(current.available); })
+      .catch(() => { if (!controller.signal.aborted) setAvailable(false); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+  });
   const comingSoon = product.status === 'coming-soon';
   return <main id="main-content" tabIndex={-1}>
     <div class="product-breadcrumb section-shell" data-reveal-group=""><a href="/">Home</a><span aria-hidden="true">/</span><a href="/products">Collection</a><span aria-hidden="true">/</span><span>{product.name}</span></div>
@@ -43,7 +56,7 @@ export default function Product(props: { product: CatalogProduct }) {
           <Show when={product.color}><div class="color-selection"><span>Color <strong>{product.color}</strong></span><Show when={product.color === 'Dark Blue'}><span class="color-swatch" aria-label="Dark Blue" /></Show></div></Show>
           <Show when={product.pieces || product.serviceFor}><div class="product-pieces"><Show when={product.pieces}><span>{product.pieces} pieces</span></Show><Show when={product.serviceFor}><span>Service for {product.serviceFor}</span></Show></div></Show>
           <div class="quantity-label-row"><label for="product-quantity">Quantity</label></div>
-          <div class="buy-row"><div class="quantity-control"><button aria-label="Decrease quantity" disabled={quantity() === 1} onClick={() => setQuantity(Math.max(1, quantity() - 1))}>−</button><input id="product-quantity" name="quantity" aria-label={`Number of ${product.quantityLabel.toLowerCase()}`} type="number" min="1" max={product.maxQuantity} value={quantity()} onChange={event => { const next = Number(event.currentTarget.value); setQuantity(Number.isFinite(next) ? Math.min(product.maxQuantity, Math.max(1, Math.trunc(next))) : 1); }} /><button aria-label="Increase quantity" disabled={quantity() === product.maxQuantity} onClick={() => setQuantity(Math.min(product.maxQuantity, quantity() + 1))}>+</button></div><a class="button product-buy" href={checkout()}>Buy now — {storePrice((product.priceCents || 0) * quantity())} <ArrowIcon /></a></div>
+          <div class="buy-row"><div class="quantity-control"><button aria-label="Decrease quantity" disabled={!available() || quantity() === 1} onClick={() => setQuantity(Math.max(1, quantity() - 1))}>−</button><input id="product-quantity" placeholder="1" disabled={!available()} name="quantity" aria-label={`Number of ${product.quantityLabel.toLowerCase()}`} type="number" min="1" max={product.maxQuantity} value={quantity()} onInput={event => { const next = Number(event.currentTarget.value); setQuantity(Number.isFinite(next) ? Math.min(product.maxQuantity, Math.max(1, Math.trunc(next))) : 1); }} /><button aria-label="Increase quantity" disabled={!available() || quantity() === product.maxQuantity} onClick={() => setQuantity(Math.min(product.maxQuantity, quantity() + 1))}>+</button></div><PurchaseButton wrapperClass="product-buy-control" class="product-buy" disabled={!available()} loading={loading()} href={checkout()}>Buy now — {storePrice((product.priceCents || 0) * quantity())} <ArrowIcon /></PurchaseButton></div>
           <a class="purchase-guarantee" href={ARRIVES_PERFECT.href}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></svg><span>{ARRIVES_PERFECT.headline}</span></a>
           <Show when={product.id === DEFAULT_PRODUCT_ID || product.amazonUrl}><a class="button-secondary amazon-cta amazon-product" href={amazonUrl('productPage', product.amazonUrl)} target="_blank" rel="noopener">Shop on Amazon <ArrowIcon diagonal /></a></Show>
           <div class="purchase-note"><span>Secure payment</span><span>Free shipping</span></div>
@@ -58,6 +71,6 @@ export default function Product(props: { product: CatalogProduct }) {
         </div>
       </div>
     </section>
-    <Show when={!comingSoon}><section class="product-bottom-cta" data-reveal-group="" data-reveal-children=""><p class="eyebrow">The Everyday Set</p><h2>Set your table<br /><em>with confidence</em></h2><a class="button" href={checkout()}>Buy now — {storePrice((product.priceCents || 0) * quantity())} <ArrowIcon /></a><Show when={product.id === DEFAULT_PRODUCT_ID || product.amazonUrl}><a class="amazon-link" href={amazonUrl('productPageBottom', product.amazonUrl)} target="_blank" rel="noopener">Or shop on Amazon <ArrowIcon diagonal /></a></Show></section><div class="mobile-purchase-bar"><div><strong>{product.name}</strong><span>{storePrice(product.priceCents || 0)}</span></div><a class="button" href={checkout()}>Buy now <ArrowIcon /></a></div></Show>
+    <Show when={!comingSoon}><section class="product-bottom-cta" data-reveal-group="" data-reveal-children=""><p class="eyebrow">The Everyday Set</p><h2>Set your table<br /><em>with confidence</em></h2><PurchaseButton disabled={!available()} loading={loading()} href={checkout()}>Buy now — {storePrice((product.priceCents || 0) * quantity())} <ArrowIcon /></PurchaseButton><Show when={product.id === DEFAULT_PRODUCT_ID || product.amazonUrl}><a class="amazon-link" href={amazonUrl('productPageBottom', product.amazonUrl)} target="_blank" rel="noopener">Or shop on Amazon <ArrowIcon diagonal /></a></Show></section><div class="mobile-purchase-bar"><div><strong>{product.name}</strong><span>{storePrice(product.priceCents || 0)}</span></div><PurchaseButton disabled={!available()} loading={loading()} href={checkout()}>Buy now <ArrowIcon /></PurchaseButton></div></Show>
   </main>;
 }

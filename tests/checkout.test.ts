@@ -91,15 +91,15 @@ afterEach(async () => {
 });
 
 describe('checkout sessions', () => {
-  it.each([1, 2])('charges exactly $99.99 per current-product unit for a fresh quantity-%s checkout', async quantity => {
+  it.each([1, 2])('charges exactly $79.99 per current-product unit for a fresh quantity-%s checkout', async quantity => {
     const response = await request('/api/checkout/session', { ...checkout, quantity, idempotencyKey: crypto.randomUUID() });
     expect(response.status).toBe(200);
     const session = remoteCalls.find(call => call.url.endsWith('/checkout/sessions'))!;
-    expect(session.body.get('line_items[0][price_data][unit_amount]')).toBe('9999');
+    expect(session.body.get('line_items[0][price_data][unit_amount]')).toBe('7999');
     expect(session.body.get('line_items[0][price_data][currency]')).toBe('usd');
     expect(session.body.get('line_items[0][quantity]')).toBe(String(quantity));
-    expect(Number(session.body.get('line_items[0][price_data][unit_amount]')) * Number(session.body.get('line_items[0][quantity]'))).toBe(quantity === 1 ? 9999 : 19998);
-    expect((await db.prepare('SELECT * FROM orders LIMIT 1').first<OrderRow>())?.unit_price_cents).toBe(9999);
+    expect(Number(session.body.get('line_items[0][price_data][unit_amount]')) * Number(session.body.get('line_items[0][quantity]'))).toBe(quantity === 1 ? 7999 : 15998);
+    expect((await db.prepare('SELECT * FROM orders LIMIT 1').first<OrderRow>())?.unit_price_cents).toBe(7999);
   });
   it('creates server-priced hosted checkout with immutable customer and payment shipping', async () => {
     const response = await start();
@@ -121,7 +121,7 @@ describe('checkout sessions', () => {
     expect(changed.status).toBe(409);
     expect((await db.prepare('SELECT COUNT(*) AS count FROM orders').first<{ count: number }>())?.count).toBe(1);
   });
-  it.each([{ price: 7999, hasStoredUrl: true }, { price: 7999, hasStoredUrl: false }, { price: 9900, hasStoredUrl: true }, { price: 9900, hasStoredUrl: false }])('rejects an old-price $price-cent pending order with stored URL=$hasStoredUrl before making any Stripe call', async ({ price, hasStoredUrl }) => {
+  it.each([{ price: 9999, hasStoredUrl: true }, { price: 9999, hasStoredUrl: false }, { price: 9900, hasStoredUrl: true }, { price: 9900, hasStoredUrl: false }])('rejects an old-price $price-cent pending order with stored URL=$hasStoredUrl before making any Stripe call', async ({ price, hasStoredUrl }) => {
     await start();
     await db.prepare(`UPDATE orders SET unit_price_cents = ${price}${hasStoredUrl ? '' : ', stripe_session_id = NULL, stripe_session_url = NULL, stripe_customer_id = NULL, expires_at = NULL'}`).run();
     remoteCalls.length = 0;
@@ -140,23 +140,23 @@ describe('checkout sessions', () => {
     expect(await response.json()).toMatchObject({ code: 'checkout_expired' });
     expect(remoteCalls).toHaveLength(0);
   });
-  it('creates a new $99.99 order with a fresh key after rejecting a stale price', async () => {
-    await start(); await db.prepare('UPDATE orders SET unit_price_cents = 7999').run();
+  it('creates a new $79.99 order with a fresh key after rejecting a stale price', async () => {
+    await start(); await db.prepare('UPDATE orders SET unit_price_cents = 9999').run();
     expect((await request('/api/checkout/session', checkout)).status).toBe(409);
     // Give the mock a distinct Stripe identity for this second independent order.
     const fetchMock = vi.mocked(fetch);
     const originalFetch = fetchMock.getMockImplementation()!;
     fetchMock.mockImplementation(async (input, init) => {
       const response = await originalFetch(input, init);
-      if (String(input).endsWith('/v1/checkout/sessions')) return jsonResponse({ ...(await response.json() as Record<string, unknown>), id: 'cs_test_fresh9999', url: 'https://checkout.stripe.com/c/pay/cs_test_fresh9999' });
+      if (String(input).endsWith('/v1/checkout/sessions')) return jsonResponse({ ...(await response.json() as Record<string, unknown>), id: 'cs_test_fresh7999', url: 'https://checkout.stripe.com/c/pay/cs_test_fresh7999' });
       return response;
     });
     const freshKey = crypto.randomUUID();
     expect((await request('/api/checkout/session', { ...checkout, idempotencyKey: freshKey })).status).toBe(200);
-    expect(await db.prepare('SELECT unit_price_cents FROM orders WHERE idempotency_key = ?').bind(freshKey).first()).toMatchObject({ unit_price_cents: 9999 });
+    expect(await db.prepare('SELECT unit_price_cents FROM orders WHERE idempotency_key = ?').bind(freshKey).first()).toMatchObject({ unit_price_cents: 7999 });
     expect((await db.prepare('SELECT COUNT(*) AS count FROM orders').first<{ count: number }>())?.count).toBe(2);
   });
-  it.each(['paid', 'refunded', 'partially_refunded'].flatMap(status => [7999, 9900].map(price => ({ status, price }))))('preserves historical $price-cent $status orders on checkout reuse', async ({ status, price }) => {
+  it.each(['paid', 'refunded', 'partially_refunded'].flatMap(status => [9999, 9900].map(price => ({ status, price }))))('preserves historical $price-cent $status orders on checkout reuse', async ({ status, price }) => {
     await start();
     await db.prepare('UPDATE orders SET status = ?, unit_price_cents = ?, total_cents = ?').bind(status, price, price * 2).run();
     remoteCalls.length = 0;
@@ -284,7 +284,7 @@ describe('catalog-aware checkout and migration', () => {
 });
 
 describe('signed webhook fulfillment', () => {
-  it.each([7999, 9900])('still verifies a signed delayed %s-cent payment against its immutable order snapshot', async price => {
+  it.each([9999, 9900])('still verifies a signed delayed %s-cent payment against its immutable order snapshot', async price => {
     await start();
     await db.prepare('UPDATE orders SET unit_price_cents = ?').bind(price).run();
     expect((await request('/api/checkout/session', checkout)).status).toBe(409);

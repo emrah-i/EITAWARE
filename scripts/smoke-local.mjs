@@ -9,11 +9,11 @@ for (const route of routes) {
   assert.match(html, /EITAWARE/);
   assert.match(html, /main-content/);
   assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
-  if (route.startsWith('/products')) { assert.match(html, /application\/ld\+json/); assert.match(html, /\$99\.99\b/); }
+  if (route.startsWith('/products')) { assert.match(html, /application\/ld\+json/); assert.match(html, /\$79\.99\b/); }
 }
 assert.equal((await fetch(`${base}/not-a-real-page`)).status, 404);
 const product = await (await fetch(`${base}/api/product`)).json();
-assert.equal(product.priceCents, 9999);
+assert.equal(product.priceCents, 7999);
 assert.equal(product.available, false, 'This smoke test expects direct checkout disabled.');
 const post = (path, body, origin = base) => fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body) });
 assert.equal((await post('/api/checkout/session', {}, 'https://unrelated.example')).status, 403);

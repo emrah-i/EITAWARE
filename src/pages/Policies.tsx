@@ -45,11 +45,11 @@ export default function PolicyPage(props: { kind: 'privacy' | 'terms' | 'shippin
           </header>
           <section data-reveal-group="">
           <h2>Information we collect</h2>
-          <p>When you order, we collect your name, email, delivery address, ordered items, payment reference, and order status. When you contact us, we collect the name, email, subject, and message you submit. Our hosting provider may process technical information such as IP addresses and request logs to operate and protect the website.</p>
+          <p>When you order, we collect your name, email, delivery address, ordered items, payment reference, and order status. When you contact us, we collect the name, email, subject, and message you submit. For broken-arrival guarantee claims, we also collect your order reference and video evidence showing the set, all damaged pieces, and the packaging. Our hosting provider may process technical information such as IP addresses and request logs to operate and protect the website.</p>
           </section>
           <section data-reveal-group="">
           <h2>How we use information</h2>
-          <p>We use this information to process payment, arrange delivery, provide order updates and customer support, prevent abuse, maintain business records, and meet applicable obligations. We do not sell your personal information. This website does not use marketing trackers or an email marketing list.</p>
+          <p>We use this information to process payment, arrange delivery, provide order updates and customer support, review guarantee claims, prevent abuse, maintain business records, and meet applicable obligations. We do not sell your personal information. This website does not use marketing trackers or an email marketing list.</p>
           </section>
           <section data-reveal-group="">
           <h2>Service providers</h2>
@@ -89,6 +89,7 @@ export default function PolicyPage(props: { kind: 'privacy' | 'terms' | 'shippin
           <h2>Delivery, changes &amp; returns</h2>
           <p>Please read our <a href="/shipping-returns">shipping and returns policy</a> for eligible destinations, processing times, return conditions, and damage support. Contact us promptly to request an order change or cancellation; changes may not be possible after fulfillment begins.</p>
           <p>Orders placed on eitaware.com are covered by our <a href={ARRIVES_PERFECT.href}>arrives perfect guarantee</a>, as described in our Shipping &amp; Returns policy.</p>
+          <p><EmailText text={ARRIVES_PERFECT.evidenceRequirement} /></p>
           </section>
           <section data-reveal-group="">
           <h2>Using the website</h2>

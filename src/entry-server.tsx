@@ -6,7 +6,7 @@ export { CATALOG };
 export { AMAZON_PLACEMENTS, amazonUrl } from './shared/amazon';
 export const routes = ['/', '/products', ...PUBLISHED_PRODUCTS.map(productPath), '/faq', '/contact', '/checkout', '/order-confirmation', '/shipping-returns', '/privacy', '/terms', '/404'];
 const pages: Record<string, [string, string]> = {
-  '/': ['Elegant Dark Blue stoneware | EITAWARE', 'Shop EITAWARE’s elegant 12-piece Dark Blue stoneware dinnerware set for four at $99.99, with free standard shipping to the lower 48 states and Washington, D.C.'],
+  '/': ['Elegant Dark Blue stoneware | EITAWARE', 'Shop EITAWARE’s elegant 12-piece Dark Blue stoneware dinnerware set for four at $79.99, with free standard shipping to the lower 48 states and Washington, D.C.'],
   '/products': ['Our collection | EITAWARE', 'Explore EITAWARE dinnerware. Thoughtful stoneware pieces for your everyday table.'],
   '/contact': ['Get in touch | EITAWARE', 'Questions about your EITAWARE dinnerware or an order? Contact our team at support@eitaware.com.'],
   '/faq': ['Dinnerware care & order FAQ | EITAWARE', 'Find answers about EITAWARE stoneware food safety, dishwasher and microwave use, care, shipping, returns, and free replacement sets for broken arrivals.'],
