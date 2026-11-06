@@ -21,6 +21,7 @@ export default function Product(props: { product: CatalogProduct }) {
   const media = () => product.gallery[active()];
   const checkout = () => `/checkout?product=${encodeURIComponent(product.id)}&quantity=${quantity()}`;
   const thumbnailAlt = (item: CatalogMedia) => item.thumbnailAlt || (item.type === 'image' ? item.alt : `Video: ${item.label}`);
+  const captions = product.gallery.flatMap((item, index) => item.type === 'video' && item.caption ? [{ index, text: item.caption }] : []);
   const [available, setAvailable] = createSignal(false);
   const [loading, setLoading] = createSignal(true);
   onMount(() => {
@@ -44,9 +45,9 @@ export default function Product(props: { product: CatalogProduct }) {
           <Show when={comingSoon}><span class="status-badge">Coming soon</span></Show>
           <span class="gallery-count" aria-live="polite">{String(active() + 1).padStart(2, '0')} / {String(product.gallery.length).padStart(2, '0')}</span>
         </div>
-        <div class="gallery-thumbnails" aria-label="Product gallery"><For each={product.gallery}>{(item, index) => <button type="button" aria-label={`View ${thumbnailAlt(item)}`} aria-pressed={active() === index()} classList={{ 'thumbnail-active': active() === index() }} onClick={() => setActive(index())}><img src={item.type === 'image' ? item.thumbnail || item.src : item.poster} alt={thumbnailAlt(item)} width="120" height="120" loading="lazy" decoding="async" /><Show when={item.type === 'video'}><span class="thumbnail-play" aria-hidden="true">▶</span></Show></button>}</For></div>
+        <div class="gallery-thumbnails" aria-label="Product gallery"><For each={product.gallery}>{(item, index) => <button type="button" aria-label={`View ${thumbnailAlt(item)}`} aria-pressed={active() === index()} classList={{ 'thumbnail-active': active() === index() }} onClick={() => setActive(index())}><img src={item.type === 'image' ? item.thumbnail || item.src : item.poster} alt={thumbnailAlt(item)} width={item.type === 'image' ? item.width : item.posterWidth || 120} height={item.type === 'image' ? item.height : item.posterHeight || 120} loading="lazy" decoding="async" /><Show when={item.type === 'video'}><span class="thumbnail-play" aria-hidden="true">▶</span></Show></button>}</For></div>
         <Show when={product.galleryNote}><p class="gallery-note">{product.galleryNote}</p></Show>
-        <Show when={media().type === 'video'}><p class="gallery-note">{media().type === 'video' && (media() as { caption?: string }).caption}</p></Show>
+        <Show when={captions.length}><div class="gallery-captions" aria-live="polite"><For each={captions}>{caption => <p class="gallery-note" classList={{ 'gallery-caption-active': active() === caption.index }} aria-hidden={active() !== caption.index}>{caption.text}</p>}</For></div></Show>
       </div>
       <div class="product-purchase">
         <p class="eyebrow">EITAWARE collection</p><h1 id="product-title">{product.name}</h1><p class="product-title-detail">{product.subtitle}</p>

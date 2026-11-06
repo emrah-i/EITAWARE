@@ -28,6 +28,14 @@ const catalog = (...products: Record<string, unknown>[]) => ({
 const rejects = (input: unknown) => expect(() => parseCatalog(input)).toThrow(/Invalid catalog:/);
 
 describe('catalog publication contract', () => {
+  it('retains valid optional video poster dimensions for layout reservation', () => {
+    const result = parseCatalog(catalog(product({ gallery: [video({ posterWidth: 1280, posterHeight: 720 })] })));
+    expect(result.products[0].gallery[0]).toMatchObject({ posterWidth: 1280, posterHeight: 720 });
+  });
+  it.each([{ posterWidth: 1280 }, { posterHeight: 720 }, { posterWidth: 0, posterHeight: 720 }, { posterWidth: 1280, posterHeight: -1 }])('rejects invalid poster dimensions %j', dimensions => {
+    rejects(catalog(product({ gallery: [video(dimensions)] })));
+  });
+
   it('accepts the actual source catalog before it reaches the storefront or Worker', () => {
     const result = parseCatalog(structuredClone(catalogJson));
     expect(result.products.length).toBeGreaterThan(0);

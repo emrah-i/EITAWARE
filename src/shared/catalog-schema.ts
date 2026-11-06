@@ -3,7 +3,7 @@ export interface ImageMedia {
   type: 'image'; src: string; thumbnail?: string; thumbnailAlt?: string; width: number; height: number; alt: string; label: string;
 }
 export interface VideoMedia {
-  type: 'video'; src: string; poster: string; thumbnailAlt?: string; label: string; caption?: string;
+  type: 'video'; src: string; poster: string; posterWidth?: number; posterHeight?: number; thumbnailAlt?: string; label: string; caption?: string;
 }
 export type CatalogMedia = ImageMedia | VideoMedia;
 export type CareKind = 'dishwasher' | 'microwave' | 'stack' | 'lead-free' | 'tested' | 'refrigerator';
@@ -58,6 +58,7 @@ export function parseCatalog(input: unknown): Catalog {
         if (!localImage(media.src) || !text(media.alt) || !Number.isInteger(media.width) || Number(media.width) < 1 || !Number.isInteger(media.height) || Number(media.height) < 1 || (media.thumbnail !== undefined && !localImage(media.thumbnail))) return fail(`${at} has invalid image metadata.`);
       } else if (media.type === 'video') {
         if (!localImage(media.poster) || !localVideo(media.src) || (media.caption !== undefined && !text(media.caption))) return fail(`${at} needs a video poster and valid caption.`);
+        if ((media.posterWidth !== undefined || media.posterHeight !== undefined) && (!Number.isInteger(media.posterWidth) || Number(media.posterWidth) < 1 || !Number.isInteger(media.posterHeight) || Number(media.posterHeight) < 1)) return fail(`${at} needs positive video poster dimensions.`);
       } else return fail(`${at} media type must be image or video.`);
     }
     if (!Array.isArray(product.contents) || product.contents.some(piece => !record(piece) || !text(piece.name) || !text(piece.size) || !text(piece.caption) || !Number.isInteger(piece.quantity) || Number(piece.quantity) < 1)) return fail(`${at} has invalid contents.`);

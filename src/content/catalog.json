@@ -123,6 +123,8 @@
           "type": "video",
           "src": "/videos/table.mp4",
           "poster": "/images/video-table.webp",
+          "posterWidth": 1280,
+          "posterHeight": 720,
           "label": "placing a Dark Blue dinner plate on the table",
           "caption": "A closer look at the complete set.",
           "thumbnailAlt": "Video: placing a Dark Blue dinner plate on the table"
@@ -131,6 +133,8 @@
           "type": "video",
           "src": "/videos/meal.mp4",
           "poster": "/images/video-meal.webp",
+          "posterWidth": 1280,
+          "posterHeight": 720,
           "label": "salmon, salad, and soup on Dark Blue dinnerware",
           "caption": "See the color and finish in motion.",
           "thumbnailAlt": "Video: salmon, salad, and soup on Dark Blue dinnerware"

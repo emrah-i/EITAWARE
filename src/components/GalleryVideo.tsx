@@ -11,7 +11,7 @@ export default function GalleryVideo(props: { media: VideoMedia }) {
     try { await video?.play(); video?.focus(); } catch { setError(true); }
   }
   return <div class="gallery-video">
-    <video ref={video} controls preload="none" poster={props.media.poster} aria-label={`Video: ${props.media.label}`} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)}>
+    <video ref={video} width={props.media.posterWidth} height={props.media.posterHeight} controls preload="none" poster={props.media.poster} aria-label={`Video: ${props.media.label}`} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)}>
       <source src={props.media.src} type="video/mp4" />
       <a href={props.media.src}>Open the product video</a>
     </video>

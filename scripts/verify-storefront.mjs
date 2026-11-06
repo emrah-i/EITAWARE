@@ -327,5 +327,20 @@ for (const id of ['contact-name', 'contact-email', 'contact-subject', 'contact-m
   const markup = pages.get('/contact').match(new RegExp(`<(?:input|textarea)\\b[^>]*id="${id}"[^>]*>`));
   assert.ok(markup && attributes(markup[0]).placeholder, `${id} needs a helpful placeholder.`);
 }
-assert.match(await readFile(join(root, 'src/styles.css'), 'utf8'), /\.gallery-thumbnails img[^}]*object-fit: contain/, 'Thumbnails must show the full image.');
-console.log('Verified fail-closed purchase buttons, disabled checkout inputs, placeholders, and uncropped thumbnails.');
+assert.match(await readFile(join(root, 'src/styles.css'), 'utf8'), /\.gallery-thumbnails img[^}]*object-fit: cover/, 'Thumbnails must crop into uniform frames.');
+console.log('Verified fail-closed purchase buttons, disabled checkout inputs, placeholders, and cropped thumbnails.');
+
+assert.match(styles, /\.gallery-main > img\s*\{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain/, 'Main product images must remain complete inside the stable frame.');
+assert.match(styles, /\.gallery-thumbnails img\s*\{[^}]*aspect-ratio: 7 \/ 5;[^}]*object-fit: cover/, 'Thumbnails need consistent 7:5 cropped previews.');
+assert.match(styles, /\.gallery-main\s*\{[^}]*aspect-ratio: 1;/, 'Main gallery needs a stable square frame.');
+assert.ok(!styles.includes('--gallery-preview-height'), 'Sticky behavior must not resize the fixed square frame.');
+console.log('Verified stable square main frame, complete main images, and cropped 7:5 thumbnails.');
+
+const captionMarkup = product.match(/<div\b[^>]*class="gallery-captions"[^>]*>([\s\S]*?)<\/div>/)?.[1];
+const expectedCaptions = current.gallery.filter(item => item.type === 'video' && item.caption).map(item => item.caption);
+assert.ok(captionMarkup, 'Video captions need a reserved layout track.');
+assert.deepEqual([...captionMarkup.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/g)].map(match => text(match[1])), expectedCaptions);
+assert.equal([...captionMarkup.matchAll(/aria-hidden="true"/g)].length, expectedCaptions.length, 'No video caption should be exposed while the initial photo is selected.');
+assert.match(styles, /\.gallery-captions\s*\{[^}]*display: grid/);
+assert.match(styles, /\.gallery-captions \.gallery-note\s*\{[^}]*grid-area: 1 \/ 1;[^}]*visibility: hidden/);
+console.log('Verified caption space reservation and inactive-caption accessibility.');
