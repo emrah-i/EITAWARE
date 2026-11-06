@@ -6,20 +6,21 @@ export { CATALOG };
 export { AMAZON_PLACEMENTS, amazonUrl } from './shared/amazon';
 export const routes = ['/', '/products', ...PUBLISHED_PRODUCTS.map(productPath), '/faq', '/contact', '/checkout', '/order-confirmation', '/shipping-returns', '/privacy', '/terms', '/404'];
 const pages: Record<string, [string, string]> = {
-  '/': ['Elegant Dark Blue stoneware | EITAWARE', 'Shop EITAWARE’s elegant 12-piece Dark Blue stoneware dinnerware set for four at $79.99, with free standard shipping to the lower 48 states and Washington, D.C.'],
-  '/products': ['Our collection | EITAWARE', 'Explore EITAWARE dinnerware. Thoughtful stoneware pieces for your everyday table.'],
-  '/contact': ['Get in touch | EITAWARE', 'Questions about your EITAWARE dinnerware or an order? Contact our team at support@eitaware.com.'],
-  '/faq': ['Dinnerware care & order FAQ | EITAWARE', 'Find answers about EITAWARE stoneware food safety, dishwasher and microwave use, care, shipping, returns, and free replacement sets for broken arrivals.'],
-  '/checkout': ['Your order | EITAWARE', 'Review your EITAWARE order and delivery address.'],
-  '/order-confirmation': ['Order confirmation | EITAWARE', 'Your EITAWARE payment confirmation.'],
-  '/shipping-returns': ['Shipping & returns | EITAWARE', 'Free standard shipping to the lower 48 states and Washington, D.C. Read our shipping and 30-day return policy.'],
-  '/privacy': ['Privacy policy | EITAWARE', 'How EITAWARE and M Sqware LLC handle your information.'],
-  '/terms': ['Terms of service | EITAWARE', 'Terms for shopping with EITAWARE, a brand of M Sqware LLC.'],
-  '/404': ['Page not found | EITAWARE', 'Find your way back to the EITAWARE table.'],
+  '/': [BRAND.slogan, 'Shop EITAWARE’s elegant 12-piece Dark Blue stoneware dinnerware set for four at $79.99, with free standard shipping to the lower 48 states and Washington, D.C.'],
+  '/products': ['Products', 'Explore EITAWARE dinnerware. Thoughtful stoneware pieces for your everyday table.'],
+  '/contact': ['Contact', 'Questions about your EITAWARE dinnerware or an order? Contact our team at support@eitaware.com.'],
+  '/faq': ['FAQ', 'Find answers about EITAWARE stoneware food safety, dishwasher and microwave use, care, shipping, returns, and free replacement sets for broken arrivals.'],
+  '/checkout': ['Checkout', 'Review your EITAWARE order and delivery address.'],
+  '/order-confirmation': ['Order Confirmation', 'Your EITAWARE payment confirmation.'],
+  '/shipping-returns': ['Shipping and Returns', 'Free standard shipping to the lower 48 states and Washington, D.C. Read our shipping and 30-day return policy.'],
+  '/privacy': ['Privacy Policy', 'How EITAWARE and M Sqware LLC handle your information.'],
+  '/terms': ['Terms of Service', 'Terms for shopping with EITAWARE, a brand of M Sqware LLC.'],
+  '/404': ['Page Not Found', 'Find your way back to the EITAWARE table.'],
 };
 export function renderPage(path: string) {
   const product = path.startsWith('/products/') ? findPublishedProduct(path.slice('/products/'.length)) : undefined;
-  const [title, description] = product ? [`${product.title}${product.status === 'coming-soon' ? ' (Coming soon)' : ''} | EITAWARE`, product.description] : pages[path] || pages['/404'];
+  const [pageName, description] = product ? [`${product.name}${product.status === 'coming-soon' ? ' (Coming soon)' : ''}`, product.description] : pages[path] || pages['/404'];
+  const title = `${BRAND.name} | ${pageName}`;
   const noindex = ['/checkout', '/order-confirmation', '/404'].includes(path) || (!product && !pages[path]);
   const canonical = `${BRAND.url}${path === '/' ? '' : path}`;
   const structuredData = product ? {

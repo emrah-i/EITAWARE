@@ -187,7 +187,7 @@ assert.ok(faqMain, 'The FAQ needs an accessible main region.');
 assert.equal([...faqMain.matchAll(/<details\b/g)].length, 10, 'The FAQ needs ten expandable answers.');
 assert.equal([...faqMain.matchAll(/<summary\b/g)].length, 10, 'Every FAQ answer needs its own named disclosure.');
 assert.deepEqual([...faqMain.matchAll(/<details\b([^>]*)>/g)].map(match => attributes(match[1]).id), ['food-safe', 'included', 'dishwasher', 'microwave', 'shipping', 'broken-arrivals', 'returns', 'refrigerator', 'glaze', 'temperature'], 'FAQ answers must follow the approved shopping/support order.');
-assert.match(faq, /<title>[^<]*FAQ[^<]*EITAWARE<\/title>/i);
+assert.match(faq, /<title>EITAWARE \| FAQ<\/title>/);
 assert.ok([...faq.matchAll(/<meta\b[^>]*>/g)].map(match => attributes(match[0])).some(item => item.name === 'description' && item.content?.length > 50), 'FAQ metadata must describe its useful content.');
 assert.ok(links(faq).some(link => link.href === 'mailto:support@eitaware.com'), 'The FAQ must link to support.');
 assert.ok(text(faqMain).includes(guarantee.text) && text(faqMain).includes(guarantee.qualification), 'The FAQ must retain the exact scoped full-set replacement/refund promise.');
@@ -246,7 +246,7 @@ assert.equal(thumbnailImages.length, 8);
 assert.deepEqual(thumbnailImages.map(item => item.alt), current.gallery.map(item => item.thumbnailAlt));
 assert.ok(thumbnailImages.every(item => item.alt?.trim()), 'All eight thumbnails need descriptive alternatives.');
 for (const route of ['/privacy', '/terms']) assert.ok(text(pages.get(route)).includes('Last updated: November 2026'), `${route} needs the approved update date.`);
-assert.match(pages.get('/terms'), /<title>Terms of service \| EITAWARE<\/title>/);
+assert.match(pages.get('/terms'), /<title>EITAWARE \| Terms of Service<\/title>/);
 assert.equal(text(pages.get('/terms').match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] || ''), 'Terms of service');
 
 console.log(`Verified ${pages.size} built routes: $79.99 offer, JSON-LD, ${amazonLinkCount} exact Attribution links, two yellow shopping CTAs, neutral homepage/product-closing/checkout links, ${revealGroupCount} non-nested reveal groups, full-set guarantee placement/qualification, FAQ, six feature labels, live-text wordmarks, two-line footer slogan, approved headings/quality note, terms copy/dates, direct purchase hierarchy, and eight descriptive thumbnails.`);
@@ -344,3 +344,21 @@ assert.equal([...captionMarkup.matchAll(/aria-hidden="true"/g)].length, expected
 assert.match(styles, /\.gallery-captions\s*\{[^}]*display: grid/);
 assert.match(styles, /\.gallery-captions \.gallery-note\s*\{[^}]*grid-area: 1 \/ 1;[^}]*visibility: hidden/);
 console.log('Verified caption space reservation and inactive-caption accessibility.');
+
+const pageNames = {
+  '/': 'Simple elegance, beautifully served', '/products': 'Products', '/contact': 'Contact',
+  '/faq': 'FAQ', '/checkout': 'Checkout', '/order-confirmation': 'Order Confirmation',
+  '/shipping-returns': 'Shipping and Returns', '/privacy': 'Privacy Policy',
+  '/terms': 'Terms of Service', '/404': 'Page Not Found',
+};
+for (const [route, html] of pages) {
+  const catalogProduct = CATALOG.products.find(item => `/products/${item.slug}` === route);
+  const pageName = catalogProduct ? `${catalogProduct.name}${catalogProduct.status === 'coming-soon' ? ' (Coming soon)' : ''}` : pageNames[route];
+  const expectedTitle = `EITAWARE | ${pageName}`;
+  assert.equal(text(html.match(/<title>([\s\S]*?)<\/title>/)?.[1] || ''), expectedTitle, `${route} needs its brand-first browser title.`);
+  const openGraphTitle = [...html.matchAll(/<meta\b[^>]*>/g)].map(match => attributes(match[0])).find(meta => meta.property === 'og:title');
+  assert.equal(openGraphTitle?.content, expectedTitle, `${route} needs a matching social-sharing title.`);
+  if (route !== '/') assert.ok(!expectedTitle.includes(pageNames['/']), 'Only the homepage should use the slogan as its title.');
+}
+assert.equal(renderPage('/not-a-page').title, 'EITAWARE | Page Not Found');
+console.log('Verified brand-first titles on every route, homepage-only slogan, page names, and matching Open Graph titles.');
