@@ -1,4 +1,4 @@
-export type ProductStatus = 'draft' | 'coming-soon' | 'available';
+export type ProductStatus = 'draft' | 'coming-soon' | 'available' | 'sold-out';
 export interface ImageMedia {
   type: 'image'; src: string; thumbnail?: string; thumbnailAlt?: string; width: number; height: number; alt: string; label: string;
 }
@@ -9,8 +9,9 @@ export type CatalogMedia = ImageMedia | VideoMedia;
 export type CareKind = 'dishwasher' | 'microwave' | 'stack' | 'lead-free' | 'tested' | 'refrigerator';
 export interface CatalogProduct {
   id: string; slug: string; status: ProductStatus; name: string; title: string; subtitle: string; description: string;
-  image: string; gallery: CatalogMedia[]; priceCents?: number; currency: 'usd'; maxQuantity: number;
-  quantityLabel: string; expectedLaunch?: string; whatToExpect?: string; galleryNote?: string;
+  image: string; gallery: CatalogMedia[]; priceCents?: number; currency: 'usd';
+  payments?: { stripePaymentLink?: string };
+  expectedLaunch?: string; whatToExpect?: string; galleryNote?: string;
   asin?: string; amazonUrl?: string; color?: string; material?: string; pieces?: number; serviceFor?: number;
   contents: { name: string; quantity: number; size: string; caption: string }[];
   specifications: { label: string; value: string }[]; care: string[];
@@ -33,14 +34,22 @@ export function parseCatalog(input: unknown): Catalog {
   for (const [index, product] of input.products.entries()) {
     const at = `product ${index + 1}`;
     if (!record(product)) return fail(`${at} must be an object.`);
-    for (const field of ['id', 'slug', 'name', 'title', 'subtitle', 'description', 'quantityLabel']) if (!text(product[field])) return fail(`${at} needs ${field}.`);
+    for (const field of ['id', 'slug', 'name', 'title', 'subtitle', 'description']) if (!text(product[field])) return fail(`${at} needs ${field}.`);
     if (String(product.id).length > 120 || String(product.slug).length > 120 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(product.id)) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(product.slug))) return fail(`${at} ID and slug must use lowercase letters, numbers, and hyphens.`);
     if (ids.has(String(product.id)) || slugs.has(String(product.slug))) return fail(`${at} repeats an ID or slug.`);
     ids.add(String(product.id)); slugs.add(String(product.slug));
-    if (!['draft', 'coming-soon', 'available'].includes(String(product.status))) return fail(`${at} has an invalid status.`);
+    if (!['draft', 'coming-soon', 'available', 'sold-out'].includes(String(product.status))) return fail(`${at} has an invalid status.`);
     if (product.currency !== 'usd') return fail(`${at} must use usd.`);
-    if (!Number.isInteger(product.maxQuantity) || Number(product.maxQuantity) < 1 || Number(product.maxQuantity) > 10) return fail(`${at} maxQuantity must be 1–10.`);
-    if ((product.status === 'available' || product.priceCents !== undefined) && (!Number.isSafeInteger(product.priceCents) || Number(product.priceCents) < 50 || Number(product.priceCents) > 9999999)) return fail(`${at} needs a valid price in cents.`);
+    if ((product.status === 'available' || product.status === 'sold-out' || product.priceCents !== undefined) && (!Number.isSafeInteger(product.priceCents) || Number(product.priceCents) < 50 || Number(product.priceCents) > 9999999)) return fail(`${at} needs a valid price in cents.`);
+    if (product.payments !== undefined && !record(product.payments)) return fail(`${at} payments must be an object.`);
+    const paymentLink = record(product.payments) ? product.payments.stripePaymentLink : undefined;
+    if (product.status === 'available' && paymentLink === undefined) return fail(`${at} needs payments.stripePaymentLink before it is available.`);
+    if (paymentLink !== undefined) {
+      if (!text(paymentLink) || typeof paymentLink !== 'string' || paymentLink !== paymentLink.trim()) return fail(`${at} needs a valid Stripe Payment Link.`);
+      let url: URL;
+      try { url = new URL(paymentLink); } catch { return fail(`${at} needs a valid Stripe Payment Link.`); }
+      if (url.protocol !== 'https:' || url.hostname !== 'buy.stripe.com' || url.port || url.username || url.password) return fail(`${at} Stripe Payment Link must use HTTPS buy.stripe.com without credentials.`);
+    }
     if (!localImage(product.image)) return fail(`${at} needs a local cover image.`);
     if (product.status === 'coming-soon' && !text(product.whatToExpect)) return fail(`${at} needs whatToExpect text.`);
     for (const optional of ['expectedLaunch', 'whatToExpect', 'galleryNote', 'color', 'material', 'asin']) if (product[optional] !== undefined && !text(product[optional])) return fail(`${at} ${optional} must be nonempty text.`);
@@ -67,6 +76,6 @@ export function parseCatalog(input: unknown): Catalog {
     if (!Array.isArray(product.care) || product.care.some(line => !text(line))) return fail(`${at} care must be an array of text.`);
   }
   const featured = input.products.find(product => product.id === input.featuredProductId);
-  if (!featured || featured.status !== 'available') return fail('featuredProductId must identify an available product.');
+  if (!featured || !['available', 'sold-out'].includes(featured.status)) return fail('featuredProductId must identify an available or sold-out product.');
   return input as unknown as Catalog;
 }

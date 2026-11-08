@@ -20,25 +20,10 @@ export function money(cents: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
 }
 
-/** Marketing prices omit .00; receipts and order totals continue to use money(). */
+/** Marketing prices omit .00; money() retains two decimal places. */
 export function storePrice(cents: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency', currency, minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
   }).format(cents / 100);
 }
-
-export const SHIPPING_STATES = [
-  'AL','AZ','AR','CA','CO','CT','DE','DC','FL','GA','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA',
-  'MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD',
-  'TN','TX','UT','VT','VA','WA','WV','WI','WY',
-] as const;
-
-export const STATE_NAMES: Record<string, string> = {
-  AL:'Alabama',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'Washington, D.C.',
-  FL:'Florida',GA:'Georgia',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',
-  ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',
-  NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',
-  ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
-  SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',
-};

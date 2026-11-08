@@ -2,23 +2,22 @@ import { readFile } from 'node:fs/promises';
 
 const config = JSON.parse(await readFile(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
 const production = config.env.production;
-const catalog = JSON.parse(await readFile(new URL('../src/content/catalog.json', import.meta.url), 'utf8'));
-const fulfillment = JSON.parse(await readFile(new URL('../src/server/fulfillment.json', import.meta.url), 'utf8'));
 const errors = [];
-if (production.d1_databases.some(db => db.database_id.startsWith('00000000-'))) errors.push('Replace the production D1 database ID in wrangler.jsonc.');
-if (production.vars.SITE_URL !== 'https://eitaware.com') errors.push('Production SITE_URL must be https://eitaware.com.');
-if (production.vars.STRIPE_MODE !== 'live') errors.push('Production STRIPE_MODE must be live.');
-if (production.vars.CHECKOUT_ENABLED === 'true') {
-  if (production.vars.TAX_READY !== 'true') errors.push('Confirm your required tax registrations and Stripe Tax configuration before enabling live payments.');
-  if (production.vars.EMAIL_READY !== 'true') errors.push('Verify your sending domain and order/support mailboxes before enabling live payments.');
-  for (const product of catalog.products.filter(product => product.status === 'available')) {
-    const sku = fulfillment[product.id] || (product.id === 'eitaware-dark-blue-12' ? production.vars.MCF_SELLER_SKU : '');
-    if (typeof sku !== 'string' || !sku.trim() || /replace|example|your[-_ ]/i.test(sku)) errors.push(`Set the actual MCF seller SKU for ${product.id}.`);
-  }
+const publicVars = new Set(['ENVIRONMENT', 'SITE_URL', 'EMAIL_FROM', 'SUPPORT_EMAIL']);
+for (const [name, environment] of [['default', config], ...Object.entries(config.env)]) {
+  if (environment.workers_dev !== false || environment.preview_urls !== false) errors.push(`${name} must disable development and preview URLs.`);
+  if (environment.triggers?.crons?.length) errors.push(`${name} must not schedule background tasks.`);
+  if (environment.d1_databases?.length) errors.push(`${name} must not bind a database.`);
+  if (Object.keys(environment.vars || {}).some(key => !publicVars.has(key))) errors.push(`${name} contains unexpected configuration or a secret in public vars.`);
 }
+if (production.vars.SITE_URL !== 'https://eitaware.com') errors.push('Production SITE_URL must be https://eitaware.com.');
+const domains = production.routes.map(route => route.pattern).sort();
+if (JSON.stringify(domains) !== JSON.stringify(['eitaware.com', 'www.eitaware.com'])) errors.push('Only the EITAWARE production custom domains may be configured.');
+if (!production.routes.every(route => route.custom_domain)) errors.push('Production routes must use custom domains.');
+if (!production.vars.EMAIL_FROM || !production.vars.SUPPORT_EMAIL) errors.push('Configure the Resend sender and support recipient.');
 if (errors.length) {
   console.error(`Production configuration needs attention:\n${errors.map(value => `- ${value}`).join('\n')}`);
   process.exitCode = 1;
 } else {
-  console.log(`Production configuration checked. Checkout ${production.vars.CHECKOUT_ENABLED === 'true' ? 'enabled (runtime also checks secrets)' : 'disabled'}.`);
+  console.log('Production configuration checked: custom domains only, no database or cron, direct contact email using the Resend secret.');
 }

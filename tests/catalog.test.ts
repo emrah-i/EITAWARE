@@ -16,7 +16,7 @@ const product = (overrides: Record<string, unknown> = {}): Record<string, unknow
   id: 'blue-table-set', slug: 'a-place-at-the-table', status: 'available',
   name: 'The Table Set', title: 'Blue Dinnerware', subtitle: 'Dinnerware for four',
   description: 'A complete stoneware dinnerware set.', image: '/images/product-set.webp',
-  priceCents: 7999, currency: 'usd', maxQuantity: 4, quantityLabel: 'Sets',
+  priceCents: 7999, currency: 'usd', payments: { stripePaymentLink: 'https://buy.stripe.com/test_blue' },
   gallery: [image(), video()],
   contents: [{ name: 'Dinner plates', quantity: 4, size: '10 inches', caption: 'For dinner.' }],
   specifications: [{ label: 'Material', value: 'Stoneware' }],
@@ -100,7 +100,7 @@ describe('catalog publication contract', () => {
     ];
     const input = catalog(
       product({ id: 'future-set', slug: 'future-set', status: 'coming-soon', priceCents: undefined, whatToExpect: 'A new finish.' }),
-      product({ gallery: media, maxQuantity: 1, quantityLabel: 'Pieces' }),
+      product({ gallery: media }),
       product({ id: 'draft-set', slug: 'draft-set', status: 'draft', priceCents: undefined }),
     );
     const before = structuredClone(input);
@@ -112,7 +112,7 @@ describe('catalog publication contract', () => {
       ['video', 'Then the meal', '/videos/meal.mp4'],
       ['image', 'The full set, last', '/images/product-set.webp'],
     ]);
-    expect(result.products[1]).toMatchObject({ maxQuantity: 1, quantityLabel: 'Pieces', contents: before.products[1].contents });
+    expect(result.products[1]).toMatchObject({ contents: before.products[1].contents });
     expect(input).toEqual(before);
   });
 });
@@ -148,5 +148,43 @@ describe('catalog media usable by browser elements', () => {
     product({ gallery: [video({ poster: '/videos/table.mp4' })] }),
   ])('rejects files whose media type does not match the browser element that will render them', item => {
     rejects(catalog(item));
+  });
+});
+
+
+describe('product payment and stock configuration', () => {
+  it('keeps the Dark Blue set available with its product Payment Link', () => {
+    const current = parseCatalog(catalogJson).products.find(item => item.id === 'eitaware-dark-blue-12');
+    expect(current?.status).toBe('available');
+    expect(current?.payments?.stripePaymentLink).toMatch(/^https:\/\/buy\.stripe\.com\/test_/);
+  });
+  it('retains distinct payment destinations for different products', () => {
+    const result = parseCatalog(catalog(product(), product({ id: 'green-set', slug: 'green-set', payments: { stripePaymentLink: 'https://buy.stripe.com/test_green' } })));
+    expect(result.products.map(item => item.payments?.stripePaymentLink)).toEqual(['https://buy.stripe.com/test_blue', 'https://buy.stripe.com/test_green']);
+  });
+  it.each([undefined, {}, { stripePaymentLink: undefined }])('requires a link for available products: %j', payments => {
+    rejects(catalog(product({ payments })));
+  });
+  it.each([null, [], 'https://buy.stripe.com/test_blue'])('rejects malformed payment sections: %j', payments => {
+    rejects(catalog(product({ payments })));
+  });
+  it.each(['', '   ', 123, null, 'not-a-url', '/checkout', 'http://buy.stripe.com/test_blue', 'https://example.com/test_blue', 'https://buy.stripe.com.example.com/test_blue', 'https://user:password@buy.stripe.com/test_blue', 'https://buy.stripe.com:444/test_blue', ' https://buy.stripe.com/test_blue '])('rejects invalid Payment Link %s for every status', stripePaymentLink => {
+    for (const status of ['available', 'sold-out', 'coming-soon', 'draft']) {
+      rejects(catalog(product({ status, whatToExpect: 'A preview.', payments: { stripePaymentLink } })));
+    }
+  });
+  it.each(['sold-out', 'coming-soon', 'draft'])('allows %s products to omit their link', status => {
+    const item = product({ id: 'inactive-set', slug: 'inactive-set', status, whatToExpect: 'A preview.', payments: undefined });
+    expect(parseCatalog(catalog(product(), item)).products[1].payments).toBeUndefined();
+  });
+  it('allows a sold-out featured product and preserves its price and payment configuration', () => {
+    const result = parseCatalog(catalog(product({ status: 'sold-out' })));
+    expect(result.products[0]).toMatchObject({ status: 'sold-out', priceCents: 7999, payments: { stripePaymentLink: 'https://buy.stripe.com/test_blue' } });
+  });
+  it('allows a sold-out featured product without a payment link', () => {
+    expect(parseCatalog(catalog(product({ status: 'sold-out', payments: undefined }))).products[0].status).toBe('sold-out');
+  });
+  it.each([undefined, null, '7999', 0, -1])('requires a valid sold-out price: %s', priceCents => {
+    rejects(catalog(product({ status: 'sold-out', priceCents })));
   });
 });

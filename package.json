@@ -10,19 +10,13 @@
     "check": "tsc --noEmit",
     "test": "vitest run",
     "preview": "wrangler dev --env staging",
-    "deploy:staging": "npm run build && wrangler deploy --env staging",
     "deploy": "npm run build && node scripts/check-production.mjs && wrangler deploy --env production",
-    "db:local": "wrangler d1 migrations apply DB --local --env staging",
-    "db:staging": "wrangler d1 migrations apply DB --remote --env staging",
-    "db:production": "wrangler d1 migrations apply DB --remote --env production",
-    "store:pause": "node scripts/pause-store.mjs",
     "assets:prepare": "node scripts/prepare-assets.mjs"
   },
   "dependencies": {
     "hono": "^4.10.0",
     "motion": "^14.9.1",
-    "solid-js": "^1.9.9",
-    "stripe": "^23.1.0"
+    "solid-js": "^1.9.9"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261104.1",

@@ -1,9 +1,8 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Env } from './env';
-import { registerCheckoutRoutes } from './checkout';
+import { checkoutDestination } from '../shared/payments';
 import { registerContactRoutes } from './contact';
-import { flushOutbox } from './notifications';
 
 export const app = new Hono<{ Bindings: Env }>();
 
@@ -22,11 +21,12 @@ app.use('*', async (c, next) => {
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
   c.header('X-Frame-Options', 'DENY');
   if (c.env?.ENVIRONMENT === 'staging') c.header('X-Robots-Tag', 'noindex, nofollow');
-  if (url.pathname.startsWith('/api/')) c.header('Cache-Control', 'no-store');
+  if (url.pathname.startsWith('/api/') || /^\/(?:checkout|order-confirmation)\/?$/.test(url.pathname)) c.header('Cache-Control', 'no-store');
+  if (/^\/(?:checkout|order-confirmation)\/?$/.test(url.pathname)) c.header('X-Robots-Tag', 'noindex, nofollow');
 });
 app.use('/api/*', bodyLimit({ maxSize: 32_768, onError: c => c.json({ error: 'This request is too large.' }, 413) }));
-app.use('/api/*', async (c, next) => {
-  if (c.req.method !== 'GET' && c.req.path !== '/api/stripe/webhook') {
+app.use('/api/contact', async (c, next) => {
+  if (c.req.method !== 'GET') {
     const origin = c.req.header('Origin');
     const expected = new URL(c.env.SITE_URL || c.req.url).origin;
     const local = c.env.ENVIRONMENT !== 'production' && origin && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
@@ -35,7 +35,8 @@ app.use('/api/*', async (c, next) => {
   }
   await next();
 });
-registerCheckoutRoutes(app);
+app.get('/checkout', c => c.redirect(checkoutDestination(c.req.query('product')), 302));
+app.get('/checkout/', c => c.redirect(checkoutDestination(c.req.query('product')), 302));
 registerContactRoutes(app);
 app.get('/api/health', c => c.json({ ok: true }));
 app.all('/api/*', c => c.json({ error: 'This endpoint does not exist.' }, 404));
@@ -45,9 +46,4 @@ app.onError((error, c) => {
   return c.json({ error: 'We couldn’t complete that request. Please try again or contact support@eitaware.com.' }, 503);
 });
 
-export default {
-  fetch: app.fetch,
-  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(flushOutbox(env));
-  },
-} satisfies ExportedHandler<Env>;
+export default { fetch: app.fetch } satisfies ExportedHandler<Env>;

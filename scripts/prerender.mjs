@@ -24,7 +24,7 @@ for (const route of routes) {
   await mkdir(directory, { recursive: true });
   await writeFile(join(directory, route === '/404' ? '404.html' : 'index.html'), html);
 }
-const publicRoutes = routes.filter(route => !['/checkout','/order-confirmation','/404'].includes(route));
+const publicRoutes = routes.filter(route => !['/order-confirmation','/404'].includes(route));
 await writeFile('dist/client/sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${publicRoutes.map(route => `<url><loc>https://eitaware.com${route === '/' ? '' : route}</loc></url>`).join('')}</urlset>\n`);
 await writeFile('dist/client/robots.txt', 'User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /checkout\nDisallow: /order-confirmation\nSitemap: https://eitaware.com/sitemap.xml\n');
 console.log(`Prerendered ${routes.length} routes with canonical metadata and structured data.`);

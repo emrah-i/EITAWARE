@@ -5,6 +5,9 @@
       "id": "eitaware-dark-blue-12",
       "slug": "everyday-set-dark-blue",
       "status": "available",
+      "payments": {
+        "stripePaymentLink": "https://buy.stripe.com/test_9B63cwbjDaQceAj1sGgw000"
+      },
       "asin": "B0H8X1MSP5",
       "name": "The Everyday Set",
       "title": "Dark Blue Dinnerware Set",
@@ -16,8 +19,6 @@
       "serviceFor": 4,
       "priceCents": 7999,
       "currency": "usd",
-      "maxQuantity": 10,
-      "quantityLabel": "Sets",
       "image": "/images/product-set.webp",
       "galleryNote": "A dark blue reactive glaze. A different detail in every piece.",
       "contents": [

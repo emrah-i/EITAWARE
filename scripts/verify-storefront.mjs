@@ -20,8 +20,11 @@ const newestInput = Math.max(...await Promise.all(inputs.map(async path => (awai
 const oldestOutput = Math.min((await stat(serverEntry)).mtimeMs, (await stat(join(output, 'index.html'))).mtimeMs);
 assert.ok(oldestOutput >= newestInput, 'The built storefront is stale. Run npm run build before this verification.');
 
-const { CATALOG, routes, renderPage, AMAZON_PLACEMENTS, amazonUrl } = await import(pathToFileURL(serverEntry).href);
+const { CATALOG, PUBLISHED_PRODUCTS, routes, renderPage, AMAZON_PLACEMENTS, amazonUrl, stripePaymentLink } = await import(pathToFileURL(serverEntry).href);
 const current = CATALOG.products.find(product => product.id === 'eitaware-dark-blue-12');
+const currentPaymentLink = stripePaymentLink(current);
+assert.equal(current.status, 'available');
+assert.ok(currentPaymentLink, 'The Dark Blue set must remain available with its own Payment Link.');
 assert.equal(current?.priceCents, 7999, 'The current dinnerware offer must be $79.99 per set.');
 const productRoute = `/products/${current.slug}`;
 const decode = value => value.replace(/&(?:amp|quot|apos|lt|gt|#39|#x27);/g, entity => ({ '&amp;': '&', '&quot;': '"', '&apos;': "'", '&#39;': "'", '&#x27;': "'", '&lt;': '<', '&gt;': '>' })[entity]);
@@ -35,7 +38,7 @@ const home = pages.get('/');
 const product = pages.get(productRoute);
 assert.ok(product, 'The current product needs a prerendered detail page.');
 
-for (const route of ['/', '/products', productRoute, '/checkout']) {
+for (const route of ['/', '/products', productRoute]) {
   assert.match(text(pages.get(route)), /\$79\.99\b/, `${route} must display the current price.`);
 }
 for (const [route, html] of pages) {
@@ -83,7 +86,6 @@ const productPhotos = images(product);
 assert.equal(productPhotos[0].loading, 'eager');
 assert.equal(productPhotos[0].fetchpriority, 'high');
 assert.ok(productPhotos.slice(1).every(photo => photo.loading === 'lazy'), 'Gallery thumbnails must stay lazy.');
-assert.ok(images(pages.get('/checkout')).every(photo => photo.loading === 'lazy' && photo.srcset), 'Checkout summary imagery must be lazy and responsive.');
 
 const jsonLd = [...product.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(match => JSON.parse(match[1]));
 const offer = jsonLd.find(item => item['@type'] === 'Product')?.offers;
@@ -127,9 +129,6 @@ for (const [route, html] of pages) {
     assert.ok(!markup[1].includes('maas_adg_'), `${route} must keep the Amazon attribution URL out of the site's own structured data.`);
   }
 }
-const checkoutSource = await readFile(join(root, 'src/pages/Checkout.tsx'), 'utf8');
-const checkoutFallback = [...checkoutSource.matchAll(/<a\b([^>]*)>/g)].find(match => match[1].includes("amazonUrl('checkoutFallback"));
-assert.ok(checkoutFallback && hasClass(attributes(checkoutFallback[1]), 'amazon-link'), 'The unavailable-checkout fallback must use a neutral Amazon text link.');
 
 
 const guarantee = {
@@ -142,11 +141,11 @@ for (const [route, html] of [['/', home], [productRoute, product], ['/shipping-r
   assert.ok(text(html).includes(guarantee.qualification), `${route} must qualify the promise as website orders.`);
 }
 const purchaseLinks = links(product);
-const directMarkup = [...product.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)].find(match => hasClass(attributes(match[1]), 'product-buy'));
+const directMarkup = [...product.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)].find(match => hasClass(attributes(match[1]), 'product-buy'));
 const direct = directMarkup && { ...attributes(directMarkup[1]), text: text(directMarkup[2]) };
 const amazon = purchaseLinks.find(link => hasClass(link, 'amazon-product'));
 const guaranteeLink = purchaseLinks.find(link => hasClass(link, 'purchase-guarantee'));
-assert.ok(directMarkup?.[1].includes(' disabled'), 'Purchase must fail closed until availability is confirmed.');
+assert.equal(direct?.href, currentPaymentLink, 'Direct purchase must use its product Payment Link in prerendered HTML.');
 assert.equal(direct?.text, 'Buy now — $79.99');
 assert.ok(hasClass(direct, 'button') && !hasClass(direct, 'button-secondary'), 'Direct purchase must be the primary action.');
 assert.ok(hasClass(amazon, 'amazon-cta') && !hasClass(amazon, 'button'), 'Amazon must keep its yellow CTA treatment without taking the primary purchase class.');
@@ -249,7 +248,7 @@ for (const route of ['/privacy', '/terms']) assert.ok(text(pages.get(route)).inc
 assert.match(pages.get('/terms'), /<title>EITAWARE \| Terms of Service<\/title>/);
 assert.equal(text(pages.get('/terms').match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] || ''), 'Terms of service');
 
-console.log(`Verified ${pages.size} built routes: $79.99 offer, JSON-LD, ${amazonLinkCount} exact Attribution links, two yellow shopping CTAs, neutral homepage/product-closing/checkout links, ${revealGroupCount} non-nested reveal groups, full-set guarantee placement/qualification, FAQ, six feature labels, live-text wordmarks, two-line footer slogan, approved headings/quality note, terms copy/dates, direct purchase hierarchy, and eight descriptive thumbnails.`);
+console.log(`Verified ${pages.size} built routes: $79.99 offer, JSON-LD, ${amazonLinkCount} exact Attribution links, two yellow shopping CTAs, neutral homepage/product-closing Amazon links, ${revealGroupCount} non-nested reveal groups, full-set guarantee placement/qualification, FAQ, six feature labels, live-text wordmarks, two-line footer slogan, approved headings/quality note, terms copy/dates, direct purchase hierarchy, and eight descriptive thumbnails.`);
 
 // Public text separators, email links, accordion labels, and homepage promotions.
 for (const [route, html] of pages) {
@@ -270,7 +269,7 @@ assert.match(styles, /a\[href\^="mailto:"\]\s*\{[^}]*text-decoration:\s*underlin
 assert.match(styles, /content-enter 500ms ease-in-out/);
 assert.match(styles, /\.featured-image\s*\{[^}]*background:\s*#fff/);
 assert.doesNotMatch(styles, /content:\s*['"][·•]['"]/);
-console.log('Verified title-case product accordions, no decorative separators, linked emails, white featured panel, plain homepage/checkout Amazon links, and synchronized 500ms CSS fade.');
+console.log('Verified title-case product accordions, no decorative separators, linked emails, white featured panel, plain homepage Amazon links, and synchronized 500ms CSS fade.');
 
 assert.doesNotMatch(text(faqMain), /The Everyday Set|12 pieces for four|The Dark Blue finish/, 'The FAQ must address all sets rather than one product.');
 assert.ok(text(faqMain).includes('Yes. All our dinnerware sets are food safe.'), 'The FAQ must state the owner-supplied food-safety information for all sets.');
@@ -316,19 +315,12 @@ assert.ok(text(pages.get('/terms')).includes('Broken-arrival guarantee claims re
 
 assert.ok(text(pages.get('/privacy')).includes('video evidence showing the set, all damaged pieces, and the packaging'), 'Privacy must describe video evidence collected for guarantee claims.');
 
-// Availability is unresolved in prerendered HTML: no checkout field may be editable.
-const checkoutHtml = pages.get('/checkout');
-for (const field of checkoutHtml.matchAll(/<(?:input|select)\b([^>]*)>/g)) {
-  assert.match(field[1], /\bdisabled\b/, 'Every checkout input must be disabled before availability is confirmed.');
-  const attrs = attributes(field[1]);
-  if (!['delivery-country', 'delivery-state'].includes(attrs.id)) assert.ok(attrs.placeholder, `${attrs.id} needs a placeholder.`);
-}
 for (const id of ['contact-name', 'contact-email', 'contact-subject', 'contact-message']) {
   const markup = pages.get('/contact').match(new RegExp(`<(?:input|textarea)\\b[^>]*id="${id}"[^>]*>`));
   assert.ok(markup && attributes(markup[0]).placeholder, `${id} needs a helpful placeholder.`);
 }
 assert.match(await readFile(join(root, 'src/styles.css'), 'utf8'), /\.gallery-thumbnails img[^}]*object-fit: cover/, 'Thumbnails must crop into uniform frames.');
-console.log('Verified fail-closed purchase buttons, disabled checkout inputs, placeholders, and cropped thumbnails.');
+console.log('Verified plain purchase anchors, contact placeholders, and cropped thumbnails.');
 
 assert.match(styles, /\.gallery-main > img\s*\{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain/, 'Main product images must remain complete inside the stable frame.');
 assert.match(styles, /\.gallery-thumbnails img\s*\{[^}]*aspect-ratio: 7 \/ 5;[^}]*object-fit: cover/, 'Thumbnails need consistent 7:5 cropped previews.');
@@ -347,7 +339,7 @@ console.log('Verified caption space reservation and inactive-caption accessibili
 
 const pageNames = {
   '/': 'Simple elegance, beautifully served', '/products': 'Products', '/contact': 'Contact',
-  '/faq': 'FAQ', '/checkout': 'Checkout', '/order-confirmation': 'Order Confirmation',
+  '/faq': 'FAQ', '/order-confirmation': 'Thank You',
   '/shipping-returns': 'Shipping and Returns', '/privacy': 'Privacy Policy',
   '/terms': 'Terms of Service', '/404': 'Page Not Found',
 };
@@ -362,3 +354,81 @@ for (const [route, html] of pages) {
 }
 assert.equal(renderPage('/not-a-page').title, 'EITAWARE | Page Not Found');
 console.log('Verified brand-first titles on every route, homepage-only slogan, page names, and matching Open Graph titles.');
+
+// Purchase links must already work in the saved HTML without hydration.
+for (const [route, html] of pages) {
+  for (const link of links(html).filter(link => /^(?:buy now|shop the set)\b/i.test(link.text))) {
+    assert.ok(CATALOG.products.some(item => stripePaymentLink(item) === link.href), `${route} must use a configured product Payment Link.`);
+    assert.ok(!link.target || link.target === '_self', `${route} must keep purchases in the same tab.`);
+  }
+  assert.ok(!links(html).some(link => /^\/checkout(?:[/?#]|$)/.test(link.href || '')), `${route} still links into the old checkout.`);
+}
+assert.equal(links(home).filter(link => link.href === currentPaymentLink).length, 1);
+assert.deepEqual(links(pages.get('/products')).filter(link => hasClass(link, 'purchase-action')).map(link => link.href), CATALOG.products.filter(item => item.status === 'available').map(stripePaymentLink));
+assert.equal(links(product).filter(link => link.href === currentPaymentLink).length, 3);
+assert.doesNotMatch(product, /product-quantity|purchase-tooltip|purchase-control/);
+assert.ok(!routes.includes('/checkout'));
+const thankYou = pages.get('/order-confirmation');
+assert.match(thankYou, /name="robots" content="noindex, nofollow"/);
+assert.ok(links(thankYou).some(link => link.href === '/' && link.text === 'Back to home'));
+assert.doesNotMatch(thankYou, /Payment confirmed|Confirming your order|Check status again/);
+assert.equal(text(thankYou.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1] || ''), 'Thank you for choosing us');
+const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
+assert.doesNotMatch(sitemap, /checkout|order-confirmation/);
+// Exercise catalog states against real server-rendered HTML, without hydration.
+const purchaseActions = html => links(html).filter(link => hasClass(link, 'purchase-action'));
+function soldOutButtons(html, count) {
+  const buttons = [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)].filter(match => hasClass(attributes(match[1]), 'purchase-action'));
+  assert.equal(buttons.length, count, 'Sold-out purchase controls must remain visible.');
+  for (const [, markup, contents] of buttons) {
+    assert.match(markup, /\bdisabled(?:[\s=>]|$)/);
+    assert.equal(attributes(markup).type, 'button');
+    assert.ok(!('href' in attributes(markup)));
+    assert.equal(text(contents), 'Sold out');
+    assert.doesNotMatch(contents, /<svg/);
+  }
+}
+const savedProduct = structuredClone(current);
+const second = { ...structuredClone(current), id: 'verification-second-set', slug: 'verification-second-set', name: 'A second set', priceCents: 8999, payments: { stripePaymentLink: 'https://buy.stripe.com/test_second_set' } };
+const draft = { ...structuredClone(second), id: 'verification-draft', slug: 'verification-draft', status: 'draft' };
+const originalCatalogLength = CATALOG.products.length;
+const originalPublishedLength = PUBLISHED_PRODUCTS.length;
+try {
+  CATALOG.products.push(second, draft);
+  PUBLISHED_PRODUCTS.push(second);
+  const firstPage = renderPage(productRoute);
+  const secondPage = renderPage(`/products/${second.slug}`);
+  assert.equal(JSON.parse(firstPage.structuredData).offers.availability, 'https://schema.org/InStock');
+  assert.deepEqual(purchaseActions(firstPage.html).map(link => link.href), Array(3).fill(currentPaymentLink));
+  assert.deepEqual(purchaseActions(secondPage.html).map(link => link.href), Array(3).fill(second.payments.stripePaymentLink));
+  assert.deepEqual(purchaseActions(renderPage('/products').html).map(link => link.href), [currentPaymentLink, second.payments.stripePaymentLink]);
+  assert.equal(purchaseActions(renderPage(`/products/${draft.slug}`).html).length, 0);
+
+  current.status = 'sold-out';
+  const soldOutDetail = renderPage(productRoute);
+  assert.equal(purchaseActions(soldOutDetail.html).length, 0);
+  soldOutButtons(soldOutDetail.html, 3);
+  assert.match(text(soldOutDetail.html), /\$79\.99/);
+  assert.equal(JSON.parse(soldOutDetail.structuredData).offers.availability, 'https://schema.org/OutOfStock');
+  soldOutButtons(renderPage('/products').html, 1);
+  soldOutButtons(renderPage('/').html, 1);
+  assert.equal(purchaseActions(renderPage('/').html).length, 0, 'A sold-out homepage must not link to payment.');
+  assert.ok(links(soldOutDetail.html).some(link => link.href === expectedAmazonUrl), 'Sold-out products retain their Amazon links.');
+  // No URL is necessary while sold out; controls and metadata stay visible.
+  delete current.payments;
+  soldOutButtons(renderPage(productRoute).html, 3);
+
+  current.status = 'coming-soon';
+  current.whatToExpect = 'A future collection preview.';
+  const preview = renderPage(productRoute);
+  assert.equal(purchaseActions(preview.html).length, 0);
+  soldOutButtons(preview.html, 0);
+  assert.match(text(preview.html), /Coming soon/);
+  assert.ok(!JSON.parse(preview.structuredData).offers);
+} finally {
+  CATALOG.products.length = originalCatalogLength;
+  PUBLISHED_PRODUCTS.length = originalPublishedLength;
+  for (const key of Object.keys(current)) if (!(key in savedProduct)) delete current[key];
+  Object.assign(current, savedProduct);
+}
+console.log('Verified product-specific Payment Links, visible native Sold out buttons across all five placements, stock metadata, draft/coming-soon exclusion, and the static thank-you page.');

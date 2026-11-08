@@ -53,12 +53,12 @@ export default function PolicyPage(props: { kind: 'privacy' | 'terms' | 'shippin
           </section>
           <section data-reveal-group="">
           <h2>Service providers</h2>
-          <p>Cloudflare hosts the website and stores our order and contact records. Stripe provides the payment page and payment processing; we do not receive or store your full card number or security code. Resend delivers our operational emails. We share the delivery information needed to fulfill your order with Amazon Multi-Channel Fulfillment and its delivery providers.</p>
+          <p>Cloudflare hosts the website. Stripe provides the payment page, processes payments, and stores payment and order details; we do not receive or store your full card number or security code. Contact form messages are sent through Resend to our support inbox. The website does not store order or contact records in an application database. We share the delivery information needed to fulfill your order with Amazon Multi-Channel Fulfillment and its delivery providers.</p>
           <p>If you follow a link to Amazon, Amazon’s own privacy policy and services apply to your activity there. Stripe’s payment page may use cookies or similar technology for payments and fraud prevention.</p>
           </section>
           <section data-reveal-group="">
           <h2>Browser storage &amp; records</h2>
-          <p>We use limited browser storage to remember a dismissed announcement and avoid duplicate form or checkout submissions. We retain order records as needed for fulfillment, support, accounting, and applicable obligations. Contact messages are kept as needed to address the request. Please avoid sending sensitive payment information through the contact form.</p>
+          <p>We use limited browser storage to remember a dismissed announcement and avoid duplicate contact form submissions. We retain order records as needed for fulfillment, support, accounting, and applicable obligations. Contact messages are kept as needed to address the request. Please avoid sending sensitive payment information through the contact form.</p>
           </section>
           <section data-reveal-group="">
           <h2>Your questions &amp; requests</h2>

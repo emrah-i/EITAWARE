@@ -2,6 +2,7 @@ import EmailText from '../components/EmailText';
 import { For, Show } from 'solid-js';
 import { BRAND, storePrice, PRODUCT, PUBLISHED_PRODUCTS, productPath } from '../shared/catalog';
 import { amazonUrl } from '../shared/amazon';
+import PurchaseAction from '../components/PurchaseAction';
 import { ARRIVES_PERFECT } from '../shared/guarantee';
 import ProductCard from '../components/ProductCard';
 import { ArrowIcon, CareIcon } from '../components/Icon';
@@ -17,7 +18,7 @@ export default function Home() {
 
     <div class="surface-white">
 
-    <section class="featured-set section-shell" data-reveal-group="" aria-labelledby="featured-title"><div class="featured-image"><img src={PRODUCT.image} srcset={coverImage?.thumbnail ? `${coverImage.thumbnail} 640w, ${PRODUCT.image} ${coverImage.width}w` : undefined} sizes="(max-width: 600px) 100vw, 55vw" alt={coverImage?.alt || PRODUCT.name} width={coverImage?.width} height={coverImage?.height} loading="lazy" decoding="async" /><span class="product-image-caption">{PRODUCT.subtitle}</span></div><div class="featured-copy"><p class="eyebrow">The collection</p><h2 id="featured-title">A beautiful table<br /><em>starts here</em></h2><p class="body-copy">{PRODUCT.description}</p><div class="featured-price"><span>{PRODUCT.name}</span><span>{storePrice(PRODUCT.priceCents!)}</span></div><p class="product-subline">{PRODUCT.subtitle}</p><a class="button" href={productPath(PRODUCT)}>Shop the set <ArrowIcon /></a></div></section>
+    <section class="featured-set section-shell" data-reveal-group="" aria-labelledby="featured-title"><div class="featured-image"><img src={PRODUCT.image} srcset={coverImage?.thumbnail ? `${coverImage.thumbnail} 640w, ${PRODUCT.image} ${coverImage.width}w` : undefined} sizes="(max-width: 600px) 100vw, 55vw" alt={coverImage?.alt || PRODUCT.name} width={coverImage?.width} height={coverImage?.height} loading="lazy" decoding="async" /><span class="product-image-caption">{PRODUCT.subtitle}</span></div><div class="featured-copy"><p class="eyebrow">The collection</p><h2 id="featured-title">A beautiful table<br /><em>starts here</em></h2><p class="body-copy">{PRODUCT.description}</p><div class="featured-price"><span>{PRODUCT.name}</span><span>{storePrice(PRODUCT.priceCents!)}</span></div><p class="product-subline">{PRODUCT.subtitle}</p><PurchaseAction product={PRODUCT}>Shop the set <ArrowIcon /></PurchaseAction></div></section>
 
     </div>
 

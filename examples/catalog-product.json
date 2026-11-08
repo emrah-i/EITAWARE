@@ -7,8 +7,6 @@
   "subtitle": "Replace with a concise product summary",
   "description": "Unpublished example. Replace this copy and the placeholder media with the actual product information before changing the status.",
   "currency": "usd",
-  "maxQuantity": 1,
-  "quantityLabel": "Items",
   "image": "/images/product-set.webp",
   "contents": [],
   "specifications": [],
@@ -30,5 +28,6 @@
       "label": "Draft video",
       "caption": "Placeholder video of the existing product; replace or remove before publishing this draft."
     }
-  ]
+  ],
+  "payments": {}
 }

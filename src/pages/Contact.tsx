@@ -50,7 +50,7 @@ export default function Contact() {
         try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* Optional persistence. */ }
         form.reset();
       } else {
-        setError(result.error || 'We could not save your message. Please try again or email our team.');
+        setError(result.error || 'We could not send your message. Please try again or email our team.');
         setFields(result.fields || {});
         if (response.status === 409) {
           remembered = undefined;
