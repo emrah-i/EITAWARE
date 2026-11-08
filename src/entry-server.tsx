@@ -11,7 +11,7 @@ const pages: Record<string, [string, string]> = {
   '/products': ['Products', 'Explore EITAWARE dinnerware. Thoughtful stoneware pieces for your everyday table.'],
   '/contact': ['Contact', 'Questions about your EITAWARE dinnerware or an order? Contact our team at support@eitaware.com.'],
   '/faq': ['FAQ', 'Find answers about EITAWARE stoneware food safety, dishwasher and microwave use, care, shipping, returns, and free replacement sets for broken arrivals.'],
-  '/order-confirmation': ['Thank You', 'Thank you for choosing us. Check your Stripe receipt for payment details.'],
+  '/order-confirmation': ['Thank You', 'Thank you for choosing us. Your Stripe receipt will be sent to the email address you provided at checkout.'],
   '/shipping-returns': ['Shipping and Returns', 'Free standard shipping to the lower 48 states and Washington, D.C. Read our shipping and 30-day return policy.'],
   '/privacy': ['Privacy Policy', 'How EITAWARE and M Sqware LLC handle your information.'],
   '/terms': ['Terms of Service', 'Terms for shopping with EITAWARE, a brand of M Sqware LLC.'],

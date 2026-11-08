@@ -8,6 +8,29 @@ function escapeHtml(value: string): string {
   })[character]!);
 }
 
+const INTERNAL_RECIPIENTS = ['support@eitaware.com', 'msqware.official@gmail.com'];
+interface EmailMessage { from: string; to: string[]; reply_to: string; subject: string; text: string; html: string; }
+class IdempotencyConflict extends Error {}
+
+async function sendEmail(env: Env, message: EmailMessage, key: string): Promise<void> {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST', signal: AbortSignal.timeout(10_000),
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': key,
+    },
+    body: JSON.stringify(message),
+  });
+  if (response.status === 409) {
+    const error = await response.json() as { name?: unknown } | null;
+    if (error?.name === 'invalid_idempotent_request') throw new IdempotencyConflict();
+  }
+  if (!response.ok) throw new Error('Email was not accepted.');
+  const result = await response.json() as { id?: unknown } | null;
+  if (typeof result?.id !== 'string' || !result.id) throw new Error('Email acceptance could not be verified.');
+}
+
 export function registerContactRoutes(app: Hono<{ Bindings: Env }>): void {
   app.post('/api/contact', async c => {
     const env = c.env;
@@ -37,27 +60,29 @@ export function registerContactRoutes(app: Hono<{ Bindings: Env }>): void {
     const text = `Message reference: ${reference}\nName: ${data.name}\nEmail: ${data.email}\nSubject: ${data.subject}\n\n${data.message}`;
     const html = `<h1>Website contact message</h1><p><strong>Reference:</strong> ${reference}</p><p><strong>Name:</strong> ${escapeHtml(data.name)}<br><strong>Email:</strong> ${escapeHtml(data.email)}<br><strong>Subject:</strong> ${escapeHtml(data.subject)}</p><p style="white-space:pre-wrap">${escapeHtml(data.message)}</p>`;
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST', signal: AbortSignal.timeout(15_000),
-        headers: {
-          Authorization: `Bearer ${env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': `eitaware/contact/${reference}`,
-        },
-        body: JSON.stringify({ from: env.EMAIL_FROM, to: [env.SUPPORT_EMAIL], reply_to: data.email, subject: `EITAWARE contact: ${data.subject}`, text, html }),
-      });
-      if (response.status === 409) {
-        const error = await response.json() as { name?: unknown };
-        if (error.name === 'invalid_idempotent_request') {
-          return c.json({ error: 'This submission changed. Please try submitting your message again.' }, 409);
-        }
+      await sendEmail(env, {
+        from: env.EMAIL_FROM, to: INTERNAL_RECIPIENTS, reply_to: data.email,
+        subject: `EITAWARE contact: ${data.subject}`, text, html,
+      }, `eitaware/contact/internal/${reference}`);
+    } catch (error) {
+      if (error instanceof IdempotencyConflict) {
+        return c.json({ error: 'This submission changed. Please try submitting your message again.' }, 409);
       }
-      if (!response.ok) throw new Error('Email was not accepted.');
-      const result = await response.json() as { id?: unknown };
-      if (typeof result.id !== 'string' || !result.id) throw new Error('Email acceptance could not be verified.');
-      return c.json({ accepted: true, reference }, 202);
-    } catch {
       return c.json({ error: 'We could not confirm your message was sent. Please retry or email support@eitaware.com.' }, 503);
+    }
+    // Only acknowledge a contact request after the team's notification is accepted.
+    const acknowledgmentText = `Hi ${data.name},\n\nYour contact request is confirmed. We’ve received your message about “${data.subject}”. Our team will reply by email.\n\nReference: ${reference}\n\nIf you need to add anything, reply to this email.\n\nEITAWARE`;
+    const acknowledgmentHtml = `<h1>Your contact request is confirmed</h1><p>Hi ${escapeHtml(data.name)},</p><p>We’ve received your message about “${escapeHtml(data.subject)}”. Our team will reply by email.</p><p><strong>Reference:</strong> ${reference}</p><p>If you need to add anything, reply to this email.</p><p>EITAWARE</p>`;
+    try {
+      await sendEmail(env, {
+        from: env.EMAIL_FROM, to: [data.email], reply_to: env.SUPPORT_EMAIL,
+        subject: 'We’ve received your message — EITAWARE', text: acknowledgmentText, html: acknowledgmentHtml,
+      }, `eitaware/contact/acknowledgment/${reference}`);
+      return c.json({ accepted: true, reference, acknowledgmentSent: true }, 202);
+    } catch {
+      // The team has the message. Never ask the visitor to submit it again solely
+      // because the courtesy acknowledgment failed; no background queue is used.
+      return c.json({ accepted: true, reference, acknowledgmentSent: false }, 202);
     }
   });
 }

@@ -31,11 +31,13 @@ After deploying the page, verify this setting with a test payment before changin
 
 ## Contact email and secrets
 
-The contact form posts to `/api/contact`. The Worker validates the request and sends directly to `https://api.resend.com/emails`, using `RESEND_API_KEY` from Cloudflare secrets. `EMAIL_FROM` and `SUPPORT_EMAIL` are ordinary Wrangler configuration. The visitor's email is used only as Reply-To; the recipient is fixed server-side.
+The contact form posts to `/api/contact`. The Worker validates the request and sends directly to `https://api.resend.com/emails`, using `RESEND_API_KEY` from Cloudflare secrets. `EMAIL_FROM` is `EITAWARE <support@eitaware.com>` and `SUPPORT_EMAIL` is `support@eitaware.com` in every environment. The fixed internal recipients are server-only: `support@eitaware.com` and `msqware.official@gmail.com`. The internal message includes the submitted name, email, subject, message, and reference; its Reply-To is the validated submitter email.
 
-There is no application database, message queue, email trigger, scheduled handler, or background retry. The form reports success only when Resend accepts the message. Network/provider failures show an error and allow a retry. The same form retry reuses its Resend idempotency key; Resend retains these keys for 24 hours. Honeypot submissions are silently discarded. Validation, origin checks, body limits, HTML escaping, and Cloudflare edge rate limiting remain enabled. Contact content is not written to application logs.
+After Resend accepts the internal notification, a separate acknowledgment goes to the submitter from the same support sender, with Reply-To `support@eitaware.com` and subject **We’ve received your message — EITAWARE**. It confirms receipt and includes the subject and reference without echoing the full message or promising a response time. Each API request has a 10-second timeout, within the form’s 25-second timeout. Browser requests cannot override senders or internal recipients.
 
-Configure a verified sending domain and the sender/recipient addresses, then save the API key privately:
+There is no application database, message queue, email trigger, scheduled handler, or background retry. The form reports success only after Resend accepts the internal notification. If that send fails, the form allows a retry and no acknowledgment is attempted. If only the acknowledgment fails, the message is still accepted and the form explains that the acknowledgment could not be sent; the team can still reply. Successful responses retain `accepted` and `reference` and include `acknowledgmentSent` for real submissions. The same form retry reuses separate `eitaware/contact/internal/<reference>` and `eitaware/contact/acknowledgment/<reference>` idempotency keys; Resend retains these keys for 24 hours. Honeypot submissions are silently discarded. Validation, origin checks, body limits, HTML escaping, and Cloudflare edge rate limiting remain enabled. Contact content is not written to application logs.
+
+Before release, verify that **eitaware.com** is verified and enabled for sending in Resend’s Domains dashboard, and that the API key permits sending from this domain. The previous updates.eitaware.com sender alone does not establish this. Then save the API key privately:
 
 ```sh
 npx wrangler secret put RESEND_API_KEY --env production
@@ -55,7 +57,7 @@ npm run dev:worker
 
 Open `http://127.0.0.1:8787` for the Worker preview. For Vite editing, also run `npm run dev` and open `http://127.0.0.1:5173`; Vite proxies API calls and legacy checkout redirects to the local Worker.
 
-To test actual contact sending locally, copy `.dev.vars.example` to `.dev.vars.staging` and set a Resend key with a verified sender. These files are ignored by Git. Without the key, the form reports its unavailable state; unit tests mock Resend and never send messages. Localhost URLs are for local development only.
+To test actual contact sending locally, copy `.env.example` to `.dev.vars.staging` and set a Resend key with a verified sender. These files are ignored by Git. Without the key, the form reports its unavailable state; unit tests mock Resend and never send messages. Localhost URLs are for local development only.
 
 ## Checks
 

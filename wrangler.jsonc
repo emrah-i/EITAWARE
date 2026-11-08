@@ -24,7 +24,7 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "SITE_URL": "https://eitaware.com",
-        "EMAIL_FROM": "EITAWARE <notifications@updates.eitaware.com>",
+        "EMAIL_FROM": "EITAWARE <support@eitaware.com>",
         "SUPPORT_EMAIL": "support@eitaware.com"
       },
       "ratelimits": [
@@ -59,7 +59,7 @@
       "vars": {
         "ENVIRONMENT": "production",
         "SITE_URL": "https://eitaware.com",
-        "EMAIL_FROM": "EITAWARE <notifications@updates.eitaware.com>",
+        "EMAIL_FROM": "EITAWARE <support@eitaware.com>",
         "SUPPORT_EMAIL": "support@eitaware.com"
       },
       "ratelimits": [

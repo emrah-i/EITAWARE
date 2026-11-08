@@ -3,4 +3,4 @@ export interface ContactRequest {
   name: string; email: string; subject: string; message: string;
   website?: string; idempotencyKey: string;
 }
-export interface ContactResponse { accepted: true; reference: string; }
+export interface ContactResponse { accepted: true; reference: string; acknowledgmentSent?: boolean; }

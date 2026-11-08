@@ -11,6 +11,7 @@ export default function Contact() {
   const [error, setError] = createSignal('');
   const [fields, setFields] = createSignal<Record<string, string>>({});
   const [reference, setReference] = createSignal('');
+  const [acknowledgmentSent, setAcknowledgmentSent] = createSignal<boolean | undefined>();
   let remembered: { hash: string; key: string } | undefined;
 
   async function submissionKey(value: Omit<ContactRequest, 'idempotencyKey'>): Promise<string> {
@@ -45,6 +46,7 @@ export default function Contact() {
       });
       const result = await response.json() as ContactResponse & ApiError;
       if (response.ok && result.accepted === true && result.reference) {
+        setAcknowledgmentSent(result.acknowledgmentSent);
         setReference(result.reference);
         remembered = undefined;
         try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* Optional persistence. */ }
@@ -117,6 +119,8 @@ export default function Contact() {
             <div class="notice" role="status" aria-live="polite">
               <h2>Thank you for your note</h2>
               <p>Your message has been received. Our team will reply by email.</p>
+              <Show when={acknowledgmentSent() === true}><p>We’ve sent an acknowledgment to the email address you provided.</p></Show>
+              <Show when={acknowledgmentSent() === false}><p>We couldn’t send the acknowledgment email, but our team can still reply to your message.</p></Show>
               <p class="form-note">Reference: {reference()}</p>
               <button type="button" class="button-secondary" onClick={() => setReference('')}>Send another message</button>
             </div>

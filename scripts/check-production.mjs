@@ -6,6 +6,7 @@ const errors = [];
 const publicVars = new Set(['ENVIRONMENT', 'SITE_URL', 'EMAIL_FROM', 'SUPPORT_EMAIL']);
 for (const [name, environment] of [['default', config], ...Object.entries(config.env)]) {
   if (environment.workers_dev !== false || environment.preview_urls !== false) errors.push(`${name} must disable development and preview URLs.`);
+  if (name !== 'default' && (environment.vars?.EMAIL_FROM !== 'EITAWARE <support@eitaware.com>' || environment.vars?.SUPPORT_EMAIL !== 'support@eitaware.com')) errors.push(`${name} must send contact email from and reply to support@eitaware.com.`);
   if (environment.triggers?.crons?.length) errors.push(`${name} must not schedule background tasks.`);
   if (environment.d1_databases?.length) errors.push(`${name} must not bind a database.`);
   if (Object.keys(environment.vars || {}).some(key => !publicVars.has(key))) errors.push(`${name} contains unexpected configuration or a secret in public vars.`);
