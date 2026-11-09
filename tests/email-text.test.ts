@@ -6,12 +6,12 @@ describe('safe inline email text', () => {
     expect(splitEmailText(text).join('')).toBe(text);
   });
   it('links addresses while retaining surrounding punctuation and exact wording', () => {
-    expect(splitEmailText('Email support@eitaware.com, or orders@eitaware.com.')).toEqual([
-      'Email ', { email: 'support@eitaware.com' }, ', or ', { email: 'orders@eitaware.com' }, '.',
+    expect(splitEmailText('Email support@eitaware.com, or hello@example.com.')).toEqual([
+      'Email ', { email: 'support@eitaware.com' }, ', or ', { email: 'hello@example.com' }, '.',
     ]);
   });
   it('supports plus tags, mixed case and subdomains', () => {
-    expect(splitEmailText('Help+orders@Updates.Eitaware.com')).toEqual([{ email: 'Help+orders@Updates.Eitaware.com' }]);
+    expect(splitEmailText('Help+care@Updates.Example.com')).toEqual([{ email: 'Help+care@Updates.Example.com' }]);
   });
   it('treats HTML and URL-like text as plain text rather than markup', () => {
     expect(splitEmailText('<script>support@eitaware.com</script>')).toEqual(['<script>', { email: 'support@eitaware.com' }, '</script>']);

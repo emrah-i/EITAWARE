@@ -4,7 +4,7 @@ Solid.js, TypeScript, Tailwind, Hono, Cloudflare Workers Static Assets, Stripe P
 
 ## Payments and order support
 
-Each product in `src/content/catalog.json` owns its public `payments.stripePaymentLink`. The Dark Blue Everyday Set is `available` and currently uses the supplied **test-mode** link. Replace that product's JSON value with its live URL, rebuild, and deploy when ready. Payment Links are public, not environment variables; there is no global URL constant.
+Each product in `src/content/catalog.json` owns its public `payments.stripePaymentLink`. The Dark Blue Everyday Set is `available` and uses the supplied live Payment Link. To change it later, edit that product's JSON value, rebuild, and deploy. Payment Links are public, not environment variables; there is no global URL constant.
 
 ```json
 "status": "available",
@@ -27,7 +27,7 @@ There is no custom payment form, session creation/status API, webhook, order dat
 https://eitaware.com/order-confirmation
 ```
 
-After deploying the page, verify this setting with a test payment before changing to a live link. Configure the Payment Link's product, price, quantity options, delivery restrictions, shipping collection, tax settings, receipts, and owner notifications in Stripe; the website does not enforce them. The test link remains usable on the public site until that product's JSON URL is changed.
+Set this redirect on the product’s live Payment Link after deploying the page. Configure the Payment Link's product, price, quantity options, delivery restrictions, shipping collection, tax settings, receipts, and owner notifications in Stripe; the website does not enforce them. The product’s JSON URL controls all of its direct purchase links.
 
 ## Contact email and secrets
 

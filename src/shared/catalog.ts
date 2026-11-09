@@ -13,7 +13,7 @@ export const productPath = (product: { slug: string }) => `/products/${product.s
 export const BRAND = {
   name: 'EITAWARE', legalName: 'M Sqware LLC', state: 'Maryland',
   slogan: 'Simple elegance, beautifully served',
-  url: 'https://eitaware.com', supportEmail: 'support@eitaware.com', ordersEmail: 'orders@eitaware.com',
+  url: 'https://eitaware.com', supportEmail: 'support@eitaware.com',
 } as const;
 
 export function money(cents: number, currency = 'USD'): string {

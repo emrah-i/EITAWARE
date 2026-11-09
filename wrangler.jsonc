@@ -78,5 +78,9 @@
       }
     }
   },
-  "preview_urls": false
+  "preview_urls": false,
+  "vars": {
+    "EMAIL_FROM": "EITAWARE <support@eitaware.com>",
+    "SUPPORT_EMAIL": "support@eitaware.com"
+  }
 }

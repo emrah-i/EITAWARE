@@ -156,7 +156,7 @@ describe('product payment and stock configuration', () => {
   it('keeps the Dark Blue set available with its product Payment Link', () => {
     const current = parseCatalog(catalogJson).products.find(item => item.id === 'eitaware-dark-blue-12');
     expect(current?.status).toBe('available');
-    expect(current?.payments?.stripePaymentLink).toMatch(/^https:\/\/buy\.stripe\.com\/test_/);
+    expect(current?.payments?.stripePaymentLink).toMatch(/^https:\/\/buy\.stripe\.com\//);
   });
   it('retains distinct payment destinations for different products', () => {
     const result = parseCatalog(catalog(product(), product({ id: 'green-set', slug: 'green-set', payments: { stripePaymentLink: 'https://buy.stripe.com/test_green' } })));
