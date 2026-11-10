@@ -1,6 +1,7 @@
 import { mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const source = process.env.EITAWARE_ASSET_ROOT || resolve('..', 'Listing', 'Listing');
 const logo = process.env.EITAWARE_LOGO || resolve('..', 'Logos', 'EITAWARE.png');
@@ -10,9 +11,10 @@ function ffmpeg(args) {
   const result = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args], { stdio: 'inherit' });
   if (result.status !== 0) throw new Error('Media optimization failed. Install ffmpeg and check the source paths.');
 }
+const lavaCakePhoto = fileURLToPath(new URL('../assets/source/detail-lava-cake.png', import.meta.url));
 const images = [
   ['Pic 1.jpg','product-set'], ['Pic 2.png','includes'], ['Pic 3.png','sizes'],
-  ['Pic 4.png','dining'], ['Pic 6.png','detail'], ['Pic 7.png','overhead'], ['Pic 8.png','table-setting'],
+  ['Pic 4.png','dining'], [lavaCakePhoto,'detail-lava-cake'], ['Pic 7.png','overhead'], ['Pic 8.png','table-setting'],
 ];
 for (const [file, name] of images) {
   const input = resolve(source, file);

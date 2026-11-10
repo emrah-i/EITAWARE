@@ -45,6 +45,7 @@ for (const [route, html] of pages) {
   assert.doesNotMatch(text(html), /\$(?:99\.99|69\.99|99\.00)\b|\$99(?![\d.])/, `${route} still displays an old price.`);
   assert.doesNotMatch(text(html), /\b01\s*\/\s*01\b/, `${route} still displays the obsolete single-item counter.`);
   assert.doesNotMatch(text(html), /terms of sale|deep blue/i, `${route} contains superseded customer-facing copy.`);
+  assert.doesNotMatch(text(html), /shop the set/i, `${route} contains the obsolete purchase label.`);
   for (const heading of html.matchAll(/<h[123]\b[^>]*>([\s\S]*?)<\/h[123]>/g)) {
     assert.doesNotMatch(text(heading[1]), /\.$/, `${route} has a heading with an obsolete trailing period.`);
     assert.doesNotMatch(text(heading[1]), /—/, `${route} has a heading with an em dash.`);
@@ -357,7 +358,7 @@ console.log('Verified brand-first titles on every route, homepage-only slogan, p
 
 // Purchase links must already work in the saved HTML without hydration.
 for (const [route, html] of pages) {
-  for (const link of links(html).filter(link => /^(?:buy now|shop the set)\b/i.test(link.text))) {
+  for (const link of links(html).filter(link => /^buy now\b/i.test(link.text))) {
     assert.ok(CATALOG.products.some(item => stripePaymentLink(item) === link.href), `${route} must use a configured product Payment Link.`);
     assert.ok(!link.target || link.target === '_self', `${route} must keep purchases in the same tab.`);
   }

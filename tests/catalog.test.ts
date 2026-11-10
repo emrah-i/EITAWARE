@@ -94,7 +94,7 @@ describe('catalog publication contract', () => {
   it('preserves editorial product order and mixed image/video gallery order without changing authored metadata', () => {
     const media = [
       video({ label: 'Start with the table' }),
-      image({ src: '/images/detail.webp', thumbnail: undefined, alt: 'The blue glaze up close', label: 'The glaze' }),
+      image({ src: '/images/detail-lava-cake.webp', thumbnail: undefined, alt: 'The blue glaze up close', label: 'The glaze' }),
       video({ src: '/videos/meal.mp4', poster: '/images/video-meal.webp', label: 'Then the meal', caption: undefined }),
       image({ label: 'The full set, last' }),
     ];
@@ -108,7 +108,7 @@ describe('catalog publication contract', () => {
     expect(result.products.map(item => item.id)).toEqual(['future-set', 'blue-table-set', 'draft-set']);
     expect(result.products[1].gallery.map(item => [item.type, item.label, item.src])).toEqual([
       ['video', 'Start with the table', '/videos/table.mp4'],
-      ['image', 'The glaze', '/images/detail.webp'],
+      ['image', 'The glaze', '/images/detail-lava-cake.webp'],
       ['video', 'Then the meal', '/videos/meal.mp4'],
       ['image', 'The full set, last', '/images/product-set.webp'],
     ]);

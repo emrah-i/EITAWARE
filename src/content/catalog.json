@@ -92,13 +92,13 @@
         },
         {
           "type": "image",
-          "src": "/images/detail.webp",
-          "thumbnail": "/images/detail-640.webp",
-          "width": 1251,
-          "height": 848,
-          "alt": "Close detail of the plates and bowls with dark blue reactive glaze",
+          "src": "/images/detail-lava-cake.webp",
+          "thumbnail": "/images/detail-lava-cake-640.webp",
+          "width": 1500,
+          "height": 1014,
+          "alt": "Lamb chops, soup, and chocolate lava cake served on Dark Blue EITAWARE dinnerware",
           "label": "A closer look",
-          "thumbnailAlt": "Lamb, dessert, and a bowl on Dark Blue dinnerware"
+          "thumbnailAlt": "Lamb chops, soup, and lava cake on Dark Blue dinnerware"
         },
         {
           "type": "image",

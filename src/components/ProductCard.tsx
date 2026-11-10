@@ -16,7 +16,7 @@ export default function ProductCard(props: { product: CatalogProduct; priority?:
     <div class="catalog-card-title"><h2><a href={productPath(product)}>{product.name}</a></h2><Show when={(product.status === 'available' || product.status === 'sold-out') && product.priceCents !== undefined}><span>{storePrice(product.priceCents!)}</span></Show></div>
     <p>{product.subtitle}</p>
     <Show when={product.status === 'coming-soon'}><p class="catalog-launch">{product.expectedLaunch || 'Something to look forward to.'}</p></Show>
-    <PurchaseAction product={product} class="catalog-buy">Shop the set <ArrowIcon /></PurchaseAction>
+    <PurchaseAction product={product} class="catalog-buy">Buy now <ArrowIcon /></PurchaseAction>
     <a class="text-link" href={productPath(product)}>{product.status === 'coming-soon' ? 'See what’s coming' : 'Discover the details'} <ArrowIcon /></a>
   </article>;
 }
